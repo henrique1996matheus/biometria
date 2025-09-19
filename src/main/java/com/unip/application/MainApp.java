@@ -1,6 +1,6 @@
 package com.unip.application;
 
-import com.unip.controller.CameraController;
+import com.unip.controller.UIController;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -21,13 +21,12 @@ public class MainApp extends Application {
         stage.setScene(scene);
 
         stage.setOnCloseRequest(event -> {
-            CameraController controller = fxmlLoader.getController();
+            UIController controller = fxmlLoader.getController();
             if (controller != null) {
-                controller.finalizarTudo();
+                controller.shutdown();
             }
         });
 
         stage.show();
     }
-
 }
