@@ -14,8 +14,10 @@ import javafx.scene.image.PixelWriter;
 import javafx.scene.image.PixelFormat;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +27,7 @@ public class FaceService {
 
     private static final String TREINO_DIR = "./treino";
     private FaceRecognizer faceRecognizer;
+    private final RekognitionService rekognitionService = new RekognitionService();
 
     public FaceService() {
         faceRecognizer = LBPHFaceRecognizer.create();
@@ -50,7 +53,7 @@ public class FaceService {
         }
     }
 
-    public void recognizeOrSave(Mat frame, Consumer<String> messageCallback) {
+    public void recognizeOrSave(Mat frame, Consumer<String> messageCallback) throws IOException, Exception {
         createTrainDir();
         Mat gray = new Mat();
         opencv_imgproc.cvtColor(frame, gray, opencv_imgproc.COLOR_BGR2GRAY);
@@ -60,6 +63,10 @@ public class FaceService {
         String filename = TREINO_DIR + File.separator + userId + "_" + nextPhoto + ".png";
         opencv_imgcodecs.imwrite(filename, gray);
         messageCallback.accept("Rosto salvo: " + filename);
+
+        Path path = Path.of(filename);
+        byte[] imageBytes = Files.readAllBytes(path);
+        rekognitionService.registerFace(imageBytes, "user_" + userId);
     }
 
     private CascadeClassifier loadCascade(String resourcePath) throws Exception {
