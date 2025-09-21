@@ -12,7 +12,8 @@
     <RadioButton fx:id="cameraToggle" text="Camera Off" />
     <RadioButton fx:id="markFacesToggle" text="Mark Faces" />
 
-    <Button fx:id="recognizeFaceButton" text="Recognize/Save Face" />
+    <Button fx:id="registerFaceButton" text="Register new face" />
+    <Button fx:id="authFaceButton" text="Authenticate face" />
 
     <ImageView fx:id="cameraView" fitWidth="600" fitHeight="400" preserveRatio="true" />
 </VBox>
