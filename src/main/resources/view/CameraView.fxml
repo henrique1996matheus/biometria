@@ -5,14 +5,14 @@
 <?import javafx.scene.layout.*?>
 
 <VBox xmlns="http://javafx.com/javafx"
-    xmlns:fx="http://javafx.com/fxml"
-    fx:controller="com.unip.controller.CameraController"
-    spacing="10" alignment="CENTER" style="-fx-padding: 20;">
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.unip.controller.UIController"
+      spacing="10" alignment="CENTER" style="-fx-padding: 20;">
 
-    <RadioButton fx:id="radioButtonCamera" text="Câmera desligada" />
-    <RadioButton fx:id="radioButtonMarcarRostos" text="Marcar Rostos" />
+    <RadioButton fx:id="cameraToggle" text="Camera Off" />
+    <RadioButton fx:id="markFacesToggle" text="Mark Faces" />
 
-    <Button fx:id="buttonReconhecerRosto" text="Reconhecer/Salvar rosto" />
+    <Button fx:id="recognizeFaceButton" text="Recognize/Save Face" />
 
-    <ImageView fx:id="imageViewCamera" fitWidth="600" fitHeight="400" preserveRatio="true" />
+    <ImageView fx:id="cameraView" fitWidth="600" fitHeight="400" preserveRatio="true" />
 </VBox>
