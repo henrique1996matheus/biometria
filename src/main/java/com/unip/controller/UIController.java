@@ -17,7 +17,8 @@ public class UIController {
 
     @FXML private RadioButton cameraToggle;
     @FXML private RadioButton markFacesToggle;
-    @FXML private Button recognizeFaceButton;
+    @FXML private Button registerFaceButton;
+    @FXML private Button authFaceButton;
     @FXML private ImageView cameraView;
 
     private volatile boolean markFaces = false;
@@ -33,9 +34,9 @@ public class UIController {
         cameraToggle.setText(CAMERA_ON_TEXT);
         cameraToggle.setOnAction(e -> toggleCamera());
         markFacesToggle.setOnAction(e -> markFaces = !markFaces);
-        recognizeFaceButton.setOnAction(e -> {
+        registerFaceButton.setOnAction(e -> {
             try {
-                recognizeFace();
+                registerFace();
             } catch (IOException e1) {
                 // TODO Auto-generated catch block
                 e1.printStackTrace();
@@ -62,12 +63,12 @@ public class UIController {
         markFacesToggle.setVisible(cameraService.isCameraActive());
     }
 
-    private void recognizeFace() throws IOException, Exception {
+    private void registerFace() throws IOException, Exception {
         if (!cameraService.isCameraActive()) return;
 
         Mat frame = cameraService.captureFrame();
         if (frame != null) {
-            faceService.recognizeOrSave(frame, this::showMessage);
+            faceService.register(frame, this::showMessage);
         }
     }
 

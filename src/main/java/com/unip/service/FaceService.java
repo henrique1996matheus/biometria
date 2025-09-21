@@ -53,7 +53,7 @@ public class FaceService {
         }
     }
 
-    public void recognizeOrSave(Mat frame, Consumer<String> messageCallback) throws IOException, Exception {
+    public void register(Mat frame, Consumer<String> messageCallback) throws IOException, Exception {
         createTrainDir();
         Mat gray = new Mat();
         opencv_imgproc.cvtColor(frame, gray, opencv_imgproc.COLOR_BGR2GRAY);
