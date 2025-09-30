@@ -6,6 +6,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.RadioButton;
 import javafx.scene.image.ImageView;
+import java.io.IOException;
 import org.bytedeco.opencv.opencv_core.Mat;
 import com.unip.service.CameraService;
 import com.unip.service.FaceService;
@@ -14,7 +15,8 @@ public class UIController {
 
     @FXML private RadioButton cameraToggle;
     @FXML private RadioButton markFacesToggle;
-    @FXML private Button recognizeFaceButton;
+    @FXML private Button registerFaceButton;
+    @FXML private Button authFaceButton;
     @FXML private ImageView cameraView;
 
     private volatile boolean markFaces = false;
@@ -30,7 +32,17 @@ public class UIController {
         cameraToggle.setText(CAMERA_ON_TEXT);
         cameraToggle.setOnAction(e -> toggleCamera());
         markFacesToggle.setOnAction(e -> markFaces = !markFaces);
-        recognizeFaceButton.setOnAction(e -> recognizeFace());
+        registerFaceButton.setOnAction(e -> {
+            try {
+                registerFace();
+            } catch (IOException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            } catch (Exception e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            }
+        });
     }
 
     private void toggleCamera() {
@@ -49,12 +61,12 @@ public class UIController {
         markFacesToggle.setVisible(cameraService.isCameraActive());
     }
 
-    private void recognizeFace() {
+    private void registerFace() throws IOException, Exception {
         if (!cameraService.isCameraActive()) return;
 
         Mat frame = cameraService.captureFrame();
         if (frame != null) {
-            faceService.recognizeOrSave(frame, this::showMessage);
+            faceService.register(frame, this::showMessage);
         }
     }
 
