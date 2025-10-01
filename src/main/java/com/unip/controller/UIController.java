@@ -5,7 +5,11 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.RadioButton;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.image.ImageView;
+import java.io.IOException;
+import java.util.Optional;
+
 import org.bytedeco.opencv.opencv_core.Mat;
 import com.unip.service.CameraService;
 import com.unip.service.FaceService;
@@ -14,7 +18,8 @@ public class UIController {
 
     @FXML private RadioButton cameraToggle;
     @FXML private RadioButton markFacesToggle;
-    @FXML private Button recognizeFaceButton;
+    @FXML private Button registerFaceButton;
+    @FXML private Button authFaceButton;
     @FXML private ImageView cameraView;
 
     private volatile boolean markFaces = false;
@@ -30,7 +35,31 @@ public class UIController {
         cameraToggle.setText(CAMERA_ON_TEXT);
         cameraToggle.setOnAction(e -> toggleCamera());
         markFacesToggle.setOnAction(e -> markFaces = !markFaces);
-        recognizeFaceButton.setOnAction(e -> recognizeFace());
+
+        registerFaceButton.setOnAction(e -> {
+            try {
+                Mat frame = cameraService.captureFrame();
+                if (frame != null) {
+                    TextInputDialog dialog = new TextInputDialog();
+                    dialog.setHeaderText("Digite o nome da pessoa:");
+                    Optional<String> result = dialog.showAndWait();
+                    result.ifPresent(name -> faceService.register(frame, name, this::showMessage));
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
+
+        authFaceButton.setOnAction(e -> {
+            try {
+                Mat frame = cameraService.captureFrame();
+                if (frame != null) {
+                    faceService.authenticate(frame, this::showMessage);
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
     }
 
     private void toggleCamera() {
@@ -39,23 +68,29 @@ public class UIController {
             cameraToggle.setText(CAMERA_ON_TEXT);
         } else {
             cameraService.startCamera(frame -> {
-                if (markFaces) {
-                    faceService.detectFaces(frame, true);
-                }
-                Platform.runLater(() -> cameraView.setImage(faceService.matToImage(frame)));
+                // if (markFaces) {
+                //     faceService.detectFaces(frame, true);
+                // }
+                Platform.runLater(() -> {
+                    cameraView.setImage(matToImage(frame));
+                });
             });
             cameraToggle.setText(CAMERA_OFF_TEXT);
         }
         markFacesToggle.setVisible(cameraService.isCameraActive());
     }
 
-    private void recognizeFace() {
-        if (!cameraService.isCameraActive()) return;
+    private javafx.scene.image.Image matToImage(Mat frame) {
+        int width = frame.cols();
+        int height = frame.rows();
+        int channels = frame.channels();
+        byte[] buffer = new byte[width * height * channels];
+        frame.data().get(buffer);
 
-        Mat frame = cameraService.captureFrame();
-        if (frame != null) {
-            faceService.recognizeOrSave(frame, this::showMessage);
-        }
+        javafx.scene.image.WritableImage image = new javafx.scene.image.WritableImage(width, height);
+        javafx.scene.image.PixelWriter pw = image.getPixelWriter();
+        pw.setPixels(0, 0, width, height, javafx.scene.image.PixelFormat.getByteRgbInstance(), buffer, 0, width * channels);
+        return image;
     }
 
     private void showMessage(String message) {
@@ -70,6 +105,5 @@ public class UIController {
 
     public void shutdown() {
         cameraService.stopCamera();
-        faceService.closeRecognizer();
     }
 }
