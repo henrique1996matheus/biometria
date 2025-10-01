@@ -2,6 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.unip</groupId>
@@ -28,23 +29,31 @@
             <version>21.0.2</version>
         </dependency>
 
+        <!-- JavaFX Swing (opcional, caso use Swing integration) -->
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-swing</artifactId>
             <version>21.0.2</version>
         </dependency>
 
+        <!-- OpenCV com todos os módulos básicos -->
         <dependency>
             <groupId>org.bytedeco</groupId>
             <artifactId>opencv-platform</artifactId>
             <version>4.9.0-1.5.10</version>
         </dependency>
-    </dependencies>
 
+        <!-- JavaCPP (necessário para IntPointer, DoublePointer) -->
+        <dependency>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>javacpp</artifactId>
+            <version>1.5.10</version>
+        </dependency>
+    </dependencies>
 
     <build>
         <plugins>
-            <!-- JavaFX -->
+            <!-- JavaFX Maven Plugin -->
             <plugin>
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-maven-plugin</artifactId>

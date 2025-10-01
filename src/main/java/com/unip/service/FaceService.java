@@ -1,126 +1,154 @@
 package com.unip.service;
 
-import org.bytedeco.opencv.global.opencv_imgcodecs;
-import org.bytedeco.opencv.global.opencv_imgproc;
 import org.bytedeco.opencv.opencv_core.Mat;
-import org.bytedeco.opencv.opencv_core.Rect;
-import org.bytedeco.opencv.opencv_core.RectVector;
-import org.bytedeco.opencv.opencv_face.FaceRecognizer;
+import org.bytedeco.opencv.opencv_core.MatVector;
+import org.bytedeco.opencv.global.opencv_imgcodecs;
 import org.bytedeco.opencv.opencv_face.LBPHFaceRecognizer;
-import org.bytedeco.opencv.opencv_objdetect.CascadeClassifier;
-import javafx.scene.image.Image;
-import javafx.scene.image.WritableImage;
-import javafx.scene.image.PixelWriter;
-import javafx.scene.image.PixelFormat;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.List;
+import org.bytedeco.opencv.opencv_face.FaceRecognizer;
+import org.bytedeco.javacpp.IntPointer;
+import org.bytedeco.javacpp.DoublePointer;
+import java.io.*;
+import java.util.*;
 import java.util.function.Consumer;
 
-public class FaceService {
+import static org.bytedeco.opencv.global.opencv_core.CV_32SC1;
+import static org.bytedeco.opencv.global.opencv_imgproc.cvtColor;
+import static org.bytedeco.opencv.global.opencv_imgproc.COLOR_BGR2GRAY;
 
-    private static final String TREINO_DIR = "./treino";
-    private FaceRecognizer faceRecognizer;
-    private final RecognitionService recognitionService = new RecognitionService();
+
+public class FaceService {
+    private final FaceRecognizer faceRecognizer;
+    private final Map<Integer, String> idToNameMap = new HashMap<>();
+    private int nextId = 0;
+
+    private final String FACES_DIR = "faces";
+    private final String LABELS_FILE = FACES_DIR + "/labels.txt";
 
     public FaceService() {
         faceRecognizer = LBPHFaceRecognizer.create();
+        loadLabels();
+        retrainModel();
     }
 
-    public void detectFaces(Mat frame, boolean drawRects) {
-        try {
-            CascadeClassifier classifier = loadCascade("/haarcascade_frontalface_default.xml");
-            Mat gray = new Mat();
-            opencv_imgproc.cvtColor(frame, gray, opencv_imgproc.COLOR_BGR2GRAY);
+    public void register(Mat face, String personName, Consumer<String> callback) {
+        Mat grayFace = new Mat();
+        cvtColor(face, grayFace, COLOR_BGR2GRAY);
 
-            RectVector faces = new RectVector();
-            classifier.detectMultiScale(gray, faces);
+        if (!idToNameMap.isEmpty()) {
+            IntPointer label = new IntPointer(1);
+            DoublePointer confidence = new DoublePointer(1);
+            faceRecognizer.predict(grayFace, label, confidence);
 
-            if (drawRects) {
-                for (int i = 0; i < faces.size(); i++) {
-                    Rect r = faces.get(i);
-                    opencv_imgproc.rectangle(frame, r, new org.bytedeco.opencv.opencv_core.Scalar(0,255,0,0));
+            // Se confidence menor que LIMIAR_DUPLICATA, considera já registrado
+            double LIMIAR_DUPLICATA = 50.0;
+            if (confidence.get(0) < LIMIAR_DUPLICATA) {
+                String existingName = idToNameMap.get(label.get(0));
+                callback.accept("Erro: rosto já registrado como '" + existingName + "'!");
+                return;
+            }
+        }
+        if (idToNameMap.containsValue(personName)) {
+            callback.accept("Erro: usuário '" + personName + "' já registrado!");
+            return;
+        }
+
+        int personId = nextId++;
+        idToNameMap.put(personId, personName);
+
+        File personDir = new File(FACES_DIR, String.valueOf(personId));
+        personDir.mkdirs();
+        String filename = new File(personDir, System.currentTimeMillis() + ".png").getAbsolutePath();
+        opencv_imgcodecs.imwrite(filename, grayFace);
+
+        saveLabels();
+        retrainModel();
+
+        callback.accept("Sucesso: rosto registrado para '" + personName + "'");
+    }
+
+    public void authenticate(Mat face, Consumer<String> callback) {
+        if (idToNameMap.isEmpty()) {
+            callback.accept("Erro: nenhum rosto registrado!");
+            return;
+        }
+
+        IntPointer label = new IntPointer(1);
+        DoublePointer confidence = new DoublePointer(1);
+
+        Mat grayFace = new Mat();
+        cvtColor(face, grayFace, COLOR_BGR2GRAY);
+        faceRecognizer.predict(grayFace, label, confidence);
+
+        int predictedLabel = label.get(0);
+        double conf = confidence.get(0);
+
+        // quanto menor a confiança, melhor (0 = match perfeito)
+        if (predictedLabel == -1 || conf > 10) {
+            callback.accept("Erro: rosto não reconhecido (conf=" + conf + ")");
+        } else {
+            String personName = idToNameMap.get(predictedLabel);
+            callback.accept("Sucesso: autenticado como " + personName + " (conf=" + conf + ")");
+        }
+    }
+
+    private void retrainModel() {
+        List<Mat> images = new ArrayList<>();
+        List<Integer> labels = new ArrayList<>();
+
+        for (Map.Entry<Integer, String> entry : idToNameMap.entrySet()) {
+            int id = entry.getKey();
+            File personDir = new File(FACES_DIR, String.valueOf(id));
+            if (!personDir.exists()) continue;
+
+            for (File imgFile : Objects.requireNonNull(personDir.listFiles())) {
+                Mat img = opencv_imgcodecs.imread(imgFile.getAbsolutePath(), opencv_imgcodecs.IMREAD_GRAYSCALE);
+                if (!img.empty()) {
+                    images.add(img);
+                    labels.add(id);
                 }
             }
-        } catch (Exception e) {
+        }
+
+        if (!images.isEmpty()) {
+            MatVector matImages = new MatVector(images.size());
+            Mat labelsMat = new Mat(labels.size(), 1, CV_32SC1);
+
+            for (int i = 0; i < images.size(); i++) {
+                matImages.put(i, images.get(i));
+                labelsMat.ptr(i).putInt(labels.get(i));
+            }
+
+            faceRecognizer.train(matImages, labelsMat);
+        }
+    }
+
+    private void loadLabels() {
+        File file = new File(LABELS_FILE);
+        if (!file.exists()) return;
+
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] parts = line.split(";");
+                if (parts.length == 2) {
+                    int id = Integer.parseInt(parts[0]);
+                    String name = parts[1];
+                    idToNameMap.put(id, name);
+                    if (id >= nextId) nextId = id + 1;
+                }
+            }
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public void register(Mat frame, Consumer<String> messageCallback) throws IOException, Exception {
-        createTrainDir();
-        Mat gray = new Mat();
-        opencv_imgproc.cvtColor(frame, gray, opencv_imgproc.COLOR_BGR2GRAY);
-
-        int userId = getNextUserId(gray, messageCallback);
-        int nextPhoto = countUserPhotos(userId) + 1;
-        String filename = TREINO_DIR + File.separator + userId + "_" + nextPhoto + ".png";
-        opencv_imgcodecs.imwrite(filename, gray);
-        messageCallback.accept("Rosto salvo: " + filename);
-
-        Path path = Path.of(filename);
-        byte[] imageBytes = Files.readAllBytes(path);
-        recognitionService.registerFace(imageBytes, "user_" + userId);
-    }
-
-    private CascadeClassifier loadCascade(String resourcePath) throws Exception {
-        InputStream is = getClass().getResourceAsStream(resourcePath);
-        if (is == null) throw new RuntimeException("Cascade não encontrado: " + resourcePath);
-
-        File tempFile = File.createTempFile("haarcascade", ".xml");
-        tempFile.deleteOnExit();
-        Files.copy(is, tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-
-        CascadeClassifier classifier = new CascadeClassifier(tempFile.getAbsolutePath());
-        if (classifier.empty()) throw new RuntimeException("Falha ao carregar CascadeClassifier");
-        return classifier;
-    }
-
-    private void createTrainDir() {
-        File dir = new File(TREINO_DIR);
-        if (!dir.exists()) dir.mkdirs();
-    }
-
-    private int countUserPhotos(int userId) {
-        File dir = new File(TREINO_DIR);
-        File[] files = dir.listFiles((d, name) -> name.startsWith(userId + "_"));
-        return files != null ? files.length : 0;
-    }
-
-    private int getNextUserId(Mat face, Consumer<String> messageCallback) {
-        File dir = new File(TREINO_DIR);
-        File[] files = dir.listFiles((d, name) -> name.endsWith(".png") || name.endsWith(".jpg"));
-        if (files == null || files.length == 0) return 1;
-
-        List<Integer> labels = new ArrayList<>();
-        for (File f : files) {
-            String name = f.getName().split("_")[0].replaceAll("[^0-9]", "");
-            labels.add(Integer.parseInt(name));
+    private void saveLabels() {
+        try (PrintWriter pw = new PrintWriter(new FileWriter(LABELS_FILE))) {
+            for (Map.Entry<Integer, String> entry : idToNameMap.entrySet()) {
+                pw.println(entry.getKey() + ";" + entry.getValue());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        int maxId = labels.stream().mapToInt(i -> i).max().orElse(0);
-        messageCallback.accept("Próximo usuário: " + (maxId + 1));
-        return maxId + 1;
-    }
-
-    public Image matToImage(Mat frame) {
-        int width = frame.cols();
-        int height = frame.rows();
-        int channels = frame.channels();
-        WritableImage img = new WritableImage(width, height);
-        byte[] pixels = new byte[width * height * channels];
-        frame.data().get(pixels);
-        PixelWriter pw = img.getPixelWriter();
-        pw.setPixels(0, 0, width, height, PixelFormat.getByteRgbInstance(), pixels, 0, width * channels);
-        return img;
-    }
-
-    public void closeRecognizer() {
-        if (faceRecognizer != null) faceRecognizer.close();
     }
 }
