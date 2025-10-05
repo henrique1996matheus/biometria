@@ -7,6 +7,7 @@ import org.bytedeco.opencv.opencv_face.LBPHFaceRecognizer;
 import org.bytedeco.opencv.opencv_face.FaceRecognizer;
 import org.bytedeco.javacpp.IntPointer;
 import org.bytedeco.javacpp.DoublePointer;
+
 import java.io.*;
 import java.util.*;
 import java.util.function.Consumer;
@@ -15,10 +16,10 @@ import static org.bytedeco.opencv.global.opencv_core.CV_32SC1;
 import static org.bytedeco.opencv.global.opencv_imgproc.cvtColor;
 import static org.bytedeco.opencv.global.opencv_imgproc.COLOR_BGR2GRAY;
 
-
 public class FaceService {
     private final FaceRecognizer faceRecognizer;
     private final Map<Integer, String> idToNameMap = new HashMap<>();
+    private final Map<Integer, String> idToEmailMap = new HashMap<>();
     private int nextId = 0;
 
     private final String FACES_DIR = "faces";
@@ -30,30 +31,34 @@ public class FaceService {
         retrainModel();
     }
 
-    public void register(Mat face, String personName, Consumer<String> callback) {
+    public void register(Mat face, String personName, String email, Consumer<String> callback) {
         Mat grayFace = new Mat();
         cvtColor(face, grayFace, COLOR_BGR2GRAY);
+
+        // Liminar mais alta - Evita falsos positivos
+        double LIMIAR_DUPLICATA = 50.0;
 
         if (!idToNameMap.isEmpty()) {
             IntPointer label = new IntPointer(1);
             DoublePointer confidence = new DoublePointer(1);
             faceRecognizer.predict(grayFace, label, confidence);
 
-            // Se confidence menor que LIMIAR_DUPLICATA, considera já registrado
-            double LIMIAR_DUPLICATA = 50.0;
             if (confidence.get(0) < LIMIAR_DUPLICATA) {
                 String existingName = idToNameMap.get(label.get(0));
-                callback.accept("Erro: rosto já registrado como '" + existingName + "'!");
+                callback.accept("❌ Erro: Rosto já registrado como '" + existingName + "' (confiança: " + confidence.get(0) + ")");
                 return;
             }
         }
-        if (idToNameMap.containsValue(personName)) {
-            callback.accept("Erro: usuário '" + personName + "' já registrado!");
+
+        // Verificação de e-mail
+        if (idToEmailMap.containsValue(email)) {
+            callback.accept("❌ Erro: Email '" + email + "' já está registrado!");
             return;
         }
 
         int personId = nextId++;
         idToNameMap.put(personId, personName);
+        idToEmailMap.put(personId, email);
 
         File personDir = new File(FACES_DIR, String.valueOf(personId));
         personDir.mkdirs();
@@ -63,12 +68,12 @@ public class FaceService {
         saveLabels();
         retrainModel();
 
-        callback.accept("Sucesso: rosto registrado para '" + personName + "'");
+        callback.accept("✅ Sucesso: " + personName + " registrado com email " + email);
     }
 
     public void authenticate(Mat face, Consumer<String> callback) {
         if (idToNameMap.isEmpty()) {
-            callback.accept("Erro: nenhum rosto registrado!");
+            callback.accept("❌ Erro: Nenhum rosto registrado no sistema!");
             return;
         }
 
@@ -82,12 +87,15 @@ public class FaceService {
         int predictedLabel = label.get(0);
         double conf = confidence.get(0);
 
-        // quanto menor a confiança, melhor (0 = match perfeito)
-        if (predictedLabel == -1 || conf > 10) {
-            callback.accept("Erro: rosto não reconhecido (conf=" + conf + ")");
+        // Limiar de reconhecimento aumentado
+        double LIMIAR_RECONHECIMENTO = 60.0;
+
+        if (predictedLabel == -1 || conf > LIMIAR_RECONHECIMENTO) {
+            callback.accept("❌ Rosto não reconhecido (confiança: " + conf + ")");
         } else {
             String personName = idToNameMap.get(predictedLabel);
-            callback.accept("Sucesso: autenticado como " + personName + " (conf=" + conf + ")");
+            String email = idToEmailMap.get(predictedLabel);
+            callback.accept("✅ Autenticado como: " + personName + " (" + email + ") - Confiança: " + conf);
         }
     }
 
@@ -119,6 +127,7 @@ public class FaceService {
             }
 
             faceRecognizer.train(matImages, labelsMat);
+            System.out.println("Modelo treinado com " + images.size() + " imagens de " + idToNameMap.size() + " usuários");
         }
     }
 
@@ -130,10 +139,12 @@ public class FaceService {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] parts = line.split(";");
-                if (parts.length == 2) {
+                if (parts.length == 3) {
                     int id = Integer.parseInt(parts[0]);
                     String name = parts[1];
+                    String email = parts[2];
                     idToNameMap.put(id, name);
+                    idToEmailMap.put(id, email);
                     if (id >= nextId) nextId = id + 1;
                 }
             }
@@ -145,7 +156,10 @@ public class FaceService {
     private void saveLabels() {
         try (PrintWriter pw = new PrintWriter(new FileWriter(LABELS_FILE))) {
             for (Map.Entry<Integer, String> entry : idToNameMap.entrySet()) {
-                pw.println(entry.getKey() + ";" + entry.getValue());
+                int id = entry.getKey();
+                String name = entry.getValue();
+                String email = idToEmailMap.get(id);
+                pw.println(id + ";" + name + ";" + email);
             }
         } catch (IOException e) {
             e.printStackTrace();
