@@ -15,11 +15,16 @@ import java.util.Optional;
 
 public class UIController {
 
-    @FXML private RadioButton cameraToggle;
-    @FXML private RadioButton markFacesToggle;
-    @FXML private Button registerFaceButton;
-    @FXML private Button authFaceButton;
-    @FXML private ImageView cameraView;
+    @FXML
+    private RadioButton cameraToggle;
+    @FXML
+    private RadioButton markFacesToggle;
+    @FXML
+    private Button registerFaceButton;
+    @FXML
+    private Button authFaceButton;
+    @FXML
+    private ImageView cameraView;
 
     private volatile boolean markFaces = false;
 
