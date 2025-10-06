@@ -1,15 +1,9 @@
 package com.unip.controller;
 
+import com.unip.model.Role;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.RadioButton;
-import javafx.scene.control.TextInputDialog;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
-import javafx.scene.control.ButtonType;
+import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.image.ImageView;
 
@@ -39,14 +33,25 @@ public class UIController {
     private static class UserData {
         private final String name;
         private final String email;
+        private final Role role;
 
-        public UserData(String name, String email) {
+        public UserData(String name, String email, Role role) {
             this.name = name;
             this.email = email;
+            this.role = role;
         }
 
-        public String getName() { return name; }
-        public String getEmail() { return email; }
+        public String getName() {
+            return name;
+        }
+
+        public String getEmail() {
+            return email;
+        }
+
+        public Role getRole() {
+            return role;
+        }
     }
 
     @FXML
@@ -95,10 +100,17 @@ public class UIController {
         TextField emailField = new TextField();
         emailField.setPromptText("email@exemplo.com");
 
+        ComboBox<Role> roleComboBox = new ComboBox<>();
+        roleComboBox.getItems().addAll(Role.values());
+        roleComboBox.setValue(Role.LEVEL_1); // Valor padrão
+        roleComboBox.setPromptText("Selecione o nível");
+
         grid.add(new Label("Nome:"), 0, 0);
         grid.add(nameField, 1, 0);
         grid.add(new Label("Email:"), 0, 1);
         grid.add(emailField, 1, 1);
+        grid.add(new Label("Nível:"), 0, 2);
+        grid.add(roleComboBox, 1, 2);
 
         dialog.getDialogPane().setContent(grid);
 
@@ -106,7 +118,7 @@ public class UIController {
 
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == registerButtonType) {
-                return new UserData(nameField.getText(), emailField.getText());
+                return new UserData(nameField.getText(), emailField.getText(), roleComboBox.getValue());
             }
             return null;
         });
@@ -116,6 +128,7 @@ public class UIController {
         result.ifPresent(userData -> {
             String name = userData.getName();
             String email = userData.getEmail();
+            Role role = userData.getRole();
 
             if (name == null || name.trim().isEmpty()) {
                 showMessage("Erro: Nome é obrigatório!");
@@ -127,7 +140,7 @@ public class UIController {
                 return;
             }
 
-            faceService.register(frame, name, email, this::showMessage);
+            faceService.register(frame, name, email, role, this::showMessage);
         });
     }
 

@@ -4,6 +4,7 @@ import com.unip.model.User;
 import com.unip.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -38,5 +39,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean checkFaceId(String faceId) {
         return userRepository.existsByFaceId(faceId);
+    }
+
+    @Override
+    public List<User> findAll() {
+        return userRepository.findAll();
     }
 }
