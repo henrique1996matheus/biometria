@@ -3,8 +3,6 @@ package com.unip.service;
 import org.bytedeco.opencv.global.opencv_videoio;
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.bytedeco.opencv.opencv_videoio.VideoCapture;
-import org.opencv.video.Video;
-
 import java.util.function.Consumer;
 
 public class CameraService {
