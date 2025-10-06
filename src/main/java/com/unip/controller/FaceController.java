@@ -4,7 +4,6 @@ import com.unip.model.Role;
 import com.unip.model.User;
 import com.unip.service.FaceService;
 import com.unip.service.UserService;
-import jakarta.persistence.Id;
 import org.bytedeco.opencv.global.opencv_core;
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.springframework.beans.factory.annotation.Autowired;
