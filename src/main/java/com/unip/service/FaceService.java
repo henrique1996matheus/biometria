@@ -40,6 +40,9 @@ public class FaceService {
         Mat grayFace = new Mat();
         cvtColor(face, grayFace, COLOR_BGR2GRAY);
 
+        // Liminar mais alta - Evita falsos positivos
+        double LIMIAR_DUPLICATA = 50.0;
+
         if (!idToNameMap.isEmpty()) {
             try {
                 IntPointer label = new IntPointer(1);
