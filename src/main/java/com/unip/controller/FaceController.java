@@ -14,7 +14,9 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -67,6 +69,12 @@ public class FaceController {
                 future.complete(message);
             });
             String result = future.get(10, TimeUnit.SECONDS);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("sucess", true);
+            response.put("message", result)
+            response.put("user", Map.of("name", name, "email", email, "role", role));
+            
             return ResponseEntity.ok(result);
         } catch (IOException e) {
             return ResponseEntity.badRequest().body("Erro ao processar imagem");

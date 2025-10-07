@@ -34,7 +34,7 @@ public class UIController {
     private static final String CAMERA_ON_TEXT = "Turn On Camera";
     private static final String CAMERA_OFF_TEXT = "Turn Off Camera";
 
-    // Classe interna para armazenar nome e email
+    // Classe interna para armazenar nome, email e role
     private static class UserData {
         private final String name;
         private final String email;
