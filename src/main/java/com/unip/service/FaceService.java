@@ -1,5 +1,6 @@
 package com.unip.service;
 
+import com.unip.model.Role;
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.bytedeco.opencv.opencv_core.MatVector;
 import org.bytedeco.opencv.global.opencv_imgcodecs;
@@ -20,10 +21,14 @@ public class FaceService {
     private final FaceRecognizer faceRecognizer;
     private final Map<Integer, String> idToNameMap = new HashMap<>();
     private final Map<Integer, String> idToEmailMap = new HashMap<>();
+    private final Map<Integer, Role> idToRoleMap = new HashMap<>();
     private int nextId = 0;
 
     private final String FACES_DIR = "faces";
     private final String LABELS_FILE = FACES_DIR + "/labels.txt";
+
+    private static final double LIMIAR_DUPLICATA = 50.0;
+    private static final double LIMIAR_RECONHECIMENTO = 60.0;
 
     public FaceService() {
         faceRecognizer = LBPHFaceRecognizer.create();
@@ -31,7 +36,7 @@ public class FaceService {
         retrainModel();
     }
 
-    public void register(Mat face, String personName, String email, Consumer<String> callback) {
+    public void register(Mat face, String personName, String email, Role role, Consumer<String> callback) {
         Mat grayFace = new Mat();
         cvtColor(face, grayFace, COLOR_BGR2GRAY);
 
@@ -39,26 +44,34 @@ public class FaceService {
         double LIMIAR_DUPLICATA = 50.0;
 
         if (!idToNameMap.isEmpty()) {
-            IntPointer label = new IntPointer(1);
-            DoublePointer confidence = new DoublePointer(1);
-            faceRecognizer.predict(grayFace, label, confidence);
+            try {
+                IntPointer label = new IntPointer(1);
+                DoublePointer confidence = new DoublePointer(1);
+                faceRecognizer.predict(grayFace, label, confidence);
 
-            if (confidence.get(0) < LIMIAR_DUPLICATA) {
-                String existingName = idToNameMap.get(label.get(0));
-                callback.accept("❌ Erro: Rosto já registrado como '" + existingName + "' (confiança: " + confidence.get(0) + ")");
-                return;
+                double conf = confidence.get(0);
+                System.out.println("DEBUG REGISTER - Confiança: " + conf + ", Limiar: " + LIMIAR_DUPLICATA);
+
+                if (conf < LIMIAR_DUPLICATA) {
+                    String existingName = idToNameMap.get(label.get(0));
+                    callback.accept("❌ Erro: Rosto já registrado como '" + existingName + "'");
+                    return;
+                }
+            } catch (Exception e) {
+                System.out.println("Modelo não treinado, primeiro registro...");
             }
         }
 
-        // Verificação de e-mail
+        //Verificar se email já existe
         if (idToEmailMap.containsValue(email)) {
-            callback.accept("❌ Erro: Email '" + email + "' já está registrado!");
+            callback.accept("❌ Erro: Email já registrado");
             return;
         }
 
         int personId = nextId++;
         idToNameMap.put(personId, personName);
         idToEmailMap.put(personId, email);
+        idToRoleMap.put(personId, role);
 
         File personDir = new File(FACES_DIR, String.valueOf(personId));
         personDir.mkdirs();
@@ -68,7 +81,7 @@ public class FaceService {
         saveLabels();
         retrainModel();
 
-        callback.accept("✅ Sucesso: " + personName + " registrado com email " + email);
+        callback.accept("✅ Sucesso: " + personName + " registrado com email " + email + ", nível " + role);
     }
 
     public void authenticate(Mat face, Consumer<String> callback) {
