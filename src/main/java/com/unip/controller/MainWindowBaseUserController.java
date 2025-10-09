@@ -16,6 +16,10 @@ import javafx.scene.layout.VBox;
 
 public class MainWindowBaseUserController implements Initializable{
     
+    // @Autowired
+    // private PropertyService propertyService;
+
+    // private ObservableList<Property> propertiesList;
 
     @FXML
     private Button properties_btn;
@@ -30,31 +34,43 @@ public class MainWindowBaseUserController implements Initializable{
     private StackPane stc_pane_pages;
 
     @FXML
-    private TableColumn<Property, String> tbl_col_address;
+    private TableColumn<?, String> tbl_col_address;
 
     @FXML
-    private TableColumn<Property, String> tbl_col_fisc_date;
+    private TableColumn<?, String> tbl_col_fisc_date;
 
     @FXML
-    private TableColumn<Property, DateTime> tbl_col_owner;
+    private TableColumn<?, ?> tbl_col_owner;
 
-    private final PropriedadeRuralService propertyService = new PropriedadeRuralService();
+    // private final PropriedadeRuralService propertyService = new PropriedadeRuralService();
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        tbl_col_address.setCellValueFactory(new PropertyValueFactory<>("address"));
-        tbl_col_owner.setCellValueFactory(new PropertyValueFactory<>("owner"));
-        tbl_col_fisc_date.setCellValueFactory(new PropertyValueFactory<>("date"));
 
-        refreshTable();
+        
+        // loadPropertiesData();
     }
 
-    private void refreshPropertiesTable() {
-        List<PropriedadeRural> properties = propriedadeService.listarTodasPropriedades();
-        properties_table.setItems(FXCollections.observableArrayList(properties));
-    }
-    
-    private void refreshTable() {
-        refreshPropertiesTable();
-    }
+    // public void refreshPropertiesTables() {
+    //     loadPropertiesData();
+
+    // }
+
+    // private void loadPropertiesData() {
+
+    //     List<Property> properties = propertyService.findAll();
+        
+
+    //     propertiesList = FXCollections.observableArrayList(properties);
+        
+
+    //     properties_table.setItems(usersList);
+    // }
+
+    // private void setupPropertiesTable() {
+    //     tb_col_address.setCellValueFactory(new PropertyValueFactory<>("address"));
+    //     tbl_col_owner.setCellValueFactory(new PropertyValueFactory<>("owner"));
+    //     tbl_col_fisc_date.setCellValueFactory(new PropertyValueFactory<>("date"));
+
+    // }
 }
