@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="550.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller= "com.unip.controller.MainWindowIntermediaryUserController">
+   <children>
+      <HBox alignment="BOTTOM_LEFT" prefHeight="59.0" prefWidth="900.0">
+         <children>
+         <Button fx:id="properties_btn" mnemonicParsing="false" onMouseClicked="#open_properties_pane" prefHeight="30.0" prefWidth="100.0" style="-fx-background-radius: 0 0 -2 -2;" text="Properties">
+               <font>
+                  <Font size="14.0" />
+               </font>
+            </Button>
+            <Button fx:id="add_user_btn" mnemonicParsing="false" onMouseClicked="#open_add_user_pane" prefHeight="30.0" prefWidth="100.0" style="-fx-background-radius: 0 0 -2 -2;" text="Add User">
+               <font>
+                  <Font size="14.0" />
+               </font>
+            </Button>
+         </children>
+      </HBox>
+      <StackPane fx:id="stc_pane_pages" prefHeight="521.0" prefWidth="900.0">
+         <children>
+            <VBox fx:id="medium_acess_user_prop" prefHeight="200.0" prefWidth="100.0" style="-fx-background-color: blue;" visible="false">
+               <children>
+                  <TableView fx:id="properties_table" prefHeight="517.0" prefWidth="900.0">
+                    <columns>
+                      <TableColumn fx:id="tbl_col_owner" prefWidth="248.0" text="Owner" />
+                        <TableColumn fx:id="tbl_col_address" prefWidth="303.0" text="Address" />
+                        <TableColumn fx:id="tbl_col_fisc_date" prefWidth="318.0" text="Inspection Date" />
+                        <TableColumn prefWidth="56.0" />
+                    </columns>
+                  </TableView>
+               </children>
+               <StackPane.margin>
+                  <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
+               </StackPane.margin>
+            </VBox>
+            <VBox fx:id="medium_acess_add_users" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" style="-fx-background-color: blue;" visible="false">
+               <children>
+                  <ImageView fitHeight="348.0" fitWidth="868.0" pickOnBounds="true" preserveRatio="true">
+                     <VBox.margin>
+                        <Insets bottom="15.0" left="15.0" right="15.0" />
+                     </VBox.margin>
+                  </ImageView>
+                  <Button mnemonicParsing="false" style="-fx-background-radius: 10; -fx-background-color: #FF7F24;" text="Register new face">
+                     <font>
+                        <Font name="Bauhaus 93" size="22.0" />
+                     </font>
+                  </Button>
+               </children>
+            </VBox>
+         </children>
+      </StackPane>
+   </children>
+</VBox>
