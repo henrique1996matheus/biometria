@@ -72,7 +72,7 @@ public class FaceController {
 
             Map<String, Object> response = new HashMap<>();
             response.put("sucess", true);
-            response.put("message", result)
+            response.put("message", result);
             response.put("user", Map.of("name", name, "email", email, "role", role));
             
             return ResponseEntity.ok(result);
