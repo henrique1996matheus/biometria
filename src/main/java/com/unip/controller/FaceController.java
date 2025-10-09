@@ -60,7 +60,8 @@ public class FaceController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<String> registerFace(@RequestParam("image") MultipartFile image, @RequestParam("name") String name, @RequestParam("email") String email, @RequestParam("role") Role role) {
+    public ResponseEntity<String> registerFace(@RequestParam("image") MultipartFile image,
+            @RequestParam("name") String name, @RequestParam("email") String email, @RequestParam("role") Role role) {
 
         try {
             Mat matImage = convertMultipartFileToMat(image);
@@ -72,9 +73,9 @@ public class FaceController {
 
             Map<String, Object> response = new HashMap<>();
             response.put("sucess", true);
-            response.put("message", result)
+            response.put("message", result);
             response.put("user", Map.of("name", name, "email", email, "role", role));
-            
+
             return ResponseEntity.ok(result);
         } catch (IOException e) {
             return ResponseEntity.badRequest().body("Erro ao processar imagem");
@@ -86,7 +87,7 @@ public class FaceController {
     }
 
     @PostMapping("/authenticate")
-    public ResponseEntity<String> authenticatedFace (@RequestParam("image") MultipartFile image) {
+    public ResponseEntity<String> authenticatedFace(@RequestParam("image") MultipartFile image) {
         try {
             Mat matImage = convertMultipartFileToMat(image);
             final String[] resultMessage = new String[1];
