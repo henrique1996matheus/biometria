@@ -8,28 +8,39 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.image.ImageView;
 
 import org.bytedeco.opencv.opencv_core.Mat;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.unip.service.CameraService;
 import com.unip.service.FaceService;
 
 import java.util.Optional;
 
+@Component
 public class UIController {
 
     @FXML
     private RadioButton cameraToggle;
+
     @FXML
     private RadioButton markFacesToggle;
+
     @FXML
     private Button registerFaceButton;
+
     @FXML
     private Button authFaceButton;
+
     @FXML
     private ImageView cameraView;
 
     private volatile boolean markFaces = false;
 
-    private final CameraService cameraService = new CameraService();
-    private final FaceService faceService = new FaceService();
+    @Autowired
+    private CameraService cameraService;
+
+    @Autowired
+    private FaceService faceService;
 
     private static final String CAMERA_ON_TEXT = "Turn On Camera";
     private static final String CAMERA_OFF_TEXT = "Turn Off Camera";
@@ -173,7 +184,8 @@ public class UIController {
 
         javafx.scene.image.WritableImage image = new javafx.scene.image.WritableImage(width, height);
         javafx.scene.image.PixelWriter pw = image.getPixelWriter();
-        pw.setPixels(0, 0, width, height, javafx.scene.image.PixelFormat.getByteRgbInstance(), buffer, 0, width * channels);
+        pw.setPixels(0, 0, width, height, javafx.scene.image.PixelFormat.getByteRgbInstance(), buffer, 0,
+                width * channels);
         return image;
     }
 

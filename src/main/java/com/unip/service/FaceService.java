@@ -5,6 +5,7 @@ import org.bytedeco.opencv.opencv_core.Mat;
 import org.bytedeco.opencv.opencv_core.MatVector;
 import org.bytedeco.opencv.global.opencv_imgcodecs;
 import org.bytedeco.opencv.opencv_face.LBPHFaceRecognizer;
+import org.springframework.stereotype.Service;
 import org.bytedeco.opencv.opencv_face.FaceRecognizer;
 import org.bytedeco.javacpp.IntPointer;
 import org.bytedeco.javacpp.DoublePointer;
@@ -17,6 +18,7 @@ import static org.bytedeco.opencv.global.opencv_core.CV_32SC1;
 import static org.bytedeco.opencv.global.opencv_imgproc.cvtColor;
 import static org.bytedeco.opencv.global.opencv_imgproc.COLOR_BGR2GRAY;
 
+@Service
 public class FaceService {
     private final FaceRecognizer faceRecognizer;
     private final Map<Integer, String> idToNameMap = new HashMap<>();
@@ -62,7 +64,7 @@ public class FaceService {
             }
         }
 
-        //Verificar se email já existe
+        // Verificar se email já existe
         if (idToEmailMap.containsValue(email)) {
             callback.accept("❌ Erro: Email já registrado");
             return;
@@ -119,7 +121,8 @@ public class FaceService {
         for (Map.Entry<Integer, String> entry : idToNameMap.entrySet()) {
             int id = entry.getKey();
             File personDir = new File(FACES_DIR, String.valueOf(id));
-            if (!personDir.exists()) continue;
+            if (!personDir.exists())
+                continue;
 
             for (File imgFile : Objects.requireNonNull(personDir.listFiles())) {
                 Mat img = opencv_imgcodecs.imread(imgFile.getAbsolutePath(), opencv_imgcodecs.IMREAD_GRAYSCALE);
@@ -140,13 +143,15 @@ public class FaceService {
             }
 
             faceRecognizer.train(matImages, labelsMat);
-            System.out.println("Modelo treinado com " + images.size() + " imagens de " + idToNameMap.size() + " usuários");
+            System.out.println(
+                    "Modelo treinado com " + images.size() + " imagens de " + idToNameMap.size() + " usuários");
         }
     }
 
     private void loadLabels() {
         File file = new File(LABELS_FILE);
-        if (!file.exists()) return;
+        if (!file.exists())
+            return;
 
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
@@ -158,7 +163,8 @@ public class FaceService {
                     String email = parts[2];
                     idToNameMap.put(id, name);
                     idToEmailMap.put(id, email);
-                    if (id >= nextId) nextId = id + 1;
+                    if (id >= nextId)
+                        nextId = id + 1;
                 }
             }
         } catch (IOException e) {
