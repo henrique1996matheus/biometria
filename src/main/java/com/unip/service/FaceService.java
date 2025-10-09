@@ -12,7 +12,7 @@ import org.bytedeco.javacpp.DoublePointer;
 
 import java.io.*;
 import java.util.*;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 import static org.bytedeco.opencv.global.opencv_core.CV_32SC1;
 import static org.bytedeco.opencv.global.opencv_imgproc.cvtColor;
@@ -38,7 +38,7 @@ public class FaceService {
         retrainModel();
     }
 
-    public void register(Mat face, String personName, String email, Role role, Consumer<String> callback) {
+    public void register(Mat face, String personName, String email, Role role, BiConsumer<String,Role> callback) {
         Mat grayFace = new Mat();
         cvtColor(face, grayFace, COLOR_BGR2GRAY);
 
@@ -56,7 +56,7 @@ public class FaceService {
 
                 if (conf < LIMIAR_DUPLICATA) {
                     String existingName = idToNameMap.get(label.get(0));
-                    callback.accept("❌ Erro: Rosto já registrado como '" + existingName + "'");
+                    callback.accept("❌ Erro: Rosto já registrado como '" + existingName + "'", null);
                     return;
                 }
             } catch (Exception e) {
@@ -66,7 +66,7 @@ public class FaceService {
 
         // Verificar se email já existe
         if (idToEmailMap.containsValue(email)) {
-            callback.accept("❌ Erro: Email já registrado");
+            callback.accept("❌ Erro: Email já registrado", null);
             return;
         }
 
@@ -83,12 +83,12 @@ public class FaceService {
         saveLabels();
         retrainModel();
 
-        callback.accept("✅ Sucesso: " + personName + " registrado com email " + email + ", nível " + role);
+        callback.accept("✅ Sucesso: " + personName + " registrado com email " + email + ", nível " + role, role);
     }
 
-    public void authenticate(Mat face, Consumer<String> callback) {
+    public void authenticate(Mat face, BiConsumer<String, Role> callback) {
         if (idToNameMap.isEmpty()) {
-            callback.accept("❌ Erro: Nenhum rosto registrado no sistema!");
+            callback.accept("❌ Erro: Nenhum rosto registrado no sistema!", null);
             return;
         }
 
@@ -106,11 +106,15 @@ public class FaceService {
         double LIMIAR_RECONHECIMENTO = 60.0;
 
         if (predictedLabel == -1 || conf > LIMIAR_RECONHECIMENTO) {
-            callback.accept("❌ Rosto não reconhecido (confiança: " + conf + ")");
+            callback.accept("❌ Rosto não reconhecido (confiança: " + conf + ")", null);
         } else {
             String personName = idToNameMap.get(predictedLabel);
             String email = idToEmailMap.get(predictedLabel);
-            callback.accept("✅ Autenticado como: " + personName + " (" + email + ") - Confiança: " + conf);
+            Role role = idToRoleMap.get(predictedLabel);
+
+            String message = "✅ Autenticado como: " + personName + " (" + email + ") - Confiança: " + conf;
+
+            callback.accept(message, role);
         }
     }
 
@@ -157,12 +161,14 @@ public class FaceService {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] parts = line.split(";");
-                if (parts.length == 3) {
+                if (parts.length >= 3) {
                     int id = Integer.parseInt(parts[0]);
                     String name = parts[1];
                     String email = parts[2];
+                    Role role = (parts.length >= 4) ? Role.valueOf(parts[3]) : Role.LEVEL_1; 
                     idToNameMap.put(id, name);
                     idToEmailMap.put(id, email);
+                    idToRoleMap.put(id, role);
                     if (id >= nextId)
                         nextId = id + 1;
                 }
@@ -178,7 +184,8 @@ public class FaceService {
                 int id = entry.getKey();
                 String name = entry.getValue();
                 String email = idToEmailMap.get(id);
-                pw.println(id + ";" + name + ";" + email);
+                Role role = idToRoleMap.get(id);
+                pw.println(id + ";" + name + ";" + email + ";" + role.name());
             }
         } catch (IOException e) {
             e.printStackTrace();

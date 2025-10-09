@@ -3,8 +3,12 @@ package com.unip.controller;
 import com.unip.model.Role;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
+import javafx.stage.Stage;
 import javafx.scene.image.ImageView;
 
 import org.bytedeco.opencv.opencv_core.Mat;
@@ -91,7 +95,13 @@ public class UIController {
             try {
                 Mat frame = cameraService.captureFrame();
                 if (frame != null) {
-                    faceService.authenticate(frame, this::showMessage);
+                    faceService.authenticate(frame, (message,role) ->{
+                        if (role!= null){
+                            openRoleWindow(role);
+                        }else{
+                            showMessage(message);
+                        }
+                    });
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -116,17 +126,10 @@ public class UIController {
         TextField emailField = new TextField();
         emailField.setPromptText("email@exemplo.com");
 
-        ComboBox<Role> roleComboBox = new ComboBox<>();
-        roleComboBox.getItems().addAll(Role.values());
-        roleComboBox.setValue(Role.LEVEL_1); // Valor padrão
-        roleComboBox.setPromptText("Selecione o nível");
-
         grid.add(new Label("Nome:"), 0, 0);
         grid.add(nameField, 1, 0);
         grid.add(new Label("Email:"), 0, 1);
         grid.add(emailField, 1, 1);
-        grid.add(new Label("Nível:"), 0, 2);
-        grid.add(roleComboBox, 1, 2);
 
         dialog.getDialogPane().setContent(grid);
 
@@ -134,7 +137,7 @@ public class UIController {
 
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == registerButtonType) {
-                return new UserData(nameField.getText(), emailField.getText(), roleComboBox.getValue());
+                return new UserData(nameField.getText(), emailField.getText(),Role.LEVEL_1);
             }
             return null;
         });
@@ -156,7 +159,12 @@ public class UIController {
                 return;
             }
 
-            faceService.register(frame, name, email, role, this::showMessage);
+            faceService.register(frame, name, email, role, (message, registeredRole) -> {
+            showMessage(message);
+            if(registeredRole != null){
+                openRoleWindow(registeredRole);
+            }
+            });
         });
     }
 
@@ -199,7 +207,54 @@ public class UIController {
         });
     }
 
+    private void showMessage(String message, Role role) {
+        showMessage(message);
+    }
+
     public void shutdown() {
         cameraService.stopCamera();
     }
+
+    private void openRoleWindow(Role role) {
+    Platform.runLater(() -> {
+        try {
+            String fxmlFile = "";
+            String title = "";
+            
+            switch (role) {
+                case LEVEL_1:
+                    fxmlFile = "/view/MainWindowBaseUser.fxml";
+                    title = "Sistema - Nível 1";
+                    break;
+                case LEVEL_2:
+                    fxmlFile = "/view/MainWindowIntermediaryUser.fxml";
+                    title = "Sistema - Nível 2";
+                    break;
+                case LEVEL_3:
+                    fxmlFile = "/view/MainWindowTopUser.fxml";
+                    title = "Sistema - Nível 3";
+                    break;
+                default:
+                    fxmlFile = "/view/MainWindowBaseUser.fxml";
+                    title = "Sistema - Nível 1";
+            }
+            
+            // Fecha a janela atual
+            Stage currentStage = (Stage) cameraView.getScene().getWindow();
+            currentStage.close();
+            
+            // Abre a nova janela
+            Stage newStage = new Stage();
+            Parent root = FXMLLoader.load(getClass().getResource(fxmlFile));
+            newStage.setTitle(title);
+            newStage.setScene(new Scene(root));
+            newStage.show();
+            
+            } catch (Exception e) {
+                e.printStackTrace();
+                showMessage("Erro ao abrir a janela: " + e.getMessage());
+            }
+        });
+    }
+
 }
