@@ -63,10 +63,10 @@ public class MainWindowTopUserController implements Initializable{
     private volatile boolean markFaces = false;
     private volatile boolean cameraActive = false;
     
-    // @Autowired
-    // private PropertyService propertyService;
+    @Autowired
+    private PropertyService propertyService;
 
-    // private ObservableList<Property> propertiesList;
+    private ObservableList<Property> propertiesList;
 
     @FXML
     private Button add_user_btn;
@@ -83,29 +83,33 @@ public class MainWindowTopUserController implements Initializable{
     @FXML
     private VBox properties_infos;
 
-    @FXML
-    private TableView<?> properties_table;
-
+    
     @FXML
     private RadioButton radio_camera;
-
+    
     @FXML
     private RadioButton radio_mark_face;
-
+    
     @FXML
     private StackPane stc_pane_pages;
 
     @FXML
-    private TableColumn<?, ?> tb_col_address;
+    private TableView<Property> properties_table;
+
+    @FXML
+    private TableColumn<Property, String> tb_col_address;
     
     @FXML
-    private TableColumn<?, ?> tbl_col_address;
+    private TableColumn<Property, String> tbl_col_address;
     
     @FXML
-    private TableColumn<?, ?> tbl_col_fisc_date;
+    private TableColumn<Property, DateTime> tbl_col_fisc_date;
     
     @FXML
-    private TableColumn<?, ?> tbl_col_owner;
+    private TableColumn<Property, String> tbl_col_owner;
+
+    @FXML
+    private TableColumn<Property, Void> tb_col_acoes_properties;
     
     @FXML
     private Button users_btn;
@@ -146,7 +150,7 @@ public class MainWindowTopUserController implements Initializable{
 
         stopCamera();
 
-        // refreshPropertiesTables();
+        refreshPropertiesTables();
     }
 
     @FXML
@@ -201,9 +205,9 @@ public class MainWindowTopUserController implements Initializable{
         users_info.setVisible(false);
 
         setupUsersTable();
-        // setupPropertiesTable();
+        setupPropertiesTable();
         loadUsersData();
-        // loadPropertiesData();
+        loadPropertiesData();
 
         radio_camera.setText("Ligar Câmera");
         radio_mark_face.setVisible(false);
@@ -211,6 +215,7 @@ public class MainWindowTopUserController implements Initializable{
 
     
     private void setupUsersTable() {
+
         tb_col_username.setCellValueFactory(new PropertyValueFactory<>("name"));
         tb_col_email.setCellValueFactory(new PropertyValueFactory<>("email"));
         tb_col_level_access.setCellValueFactory(new PropertyValueFactory<>("role"));
@@ -220,10 +225,103 @@ public class MainWindowTopUserController implements Initializable{
     }
     
     private void setupPropertiesTable() {
+
         tb_col_address.setCellValueFactory(new PropertyValueFactory<>("address"));
         tbl_col_owner.setCellValueFactory(new PropertyValueFactory<>("owner"));
         tbl_col_fisc_date.setCellValueFactory(new PropertyValueFactory<>("date"));
         
+        setupPropertiesActionsColumn();
+    }
+
+    private void setupPropertiesActionsColumn() {
+        tb_col_acoes_properties.setCellFactory(param -> new TableCell<Property, Void>() {
+            private final Button btnEditar = new Button("✏️");
+            private final Button btnExcluir = new Button("❌");
+            private final HBox botoes = new HBox(btnEditar, btnExcluir);
+
+            {
+                // Configuração dos botões
+                btnEditar.setStyle("-fx-background-color: transparent; -fx-font-size: 14px; -fx-cursor: hand;");
+                btnExcluir.setStyle("-fx-background-color: transparent; -fx-font-size: 14px; -fx-cursor: hand;");
+                
+                // Tooltips
+                btnEditar.setTooltip(new Tooltip("Editar propriedade"));
+                btnExcluir.setTooltip(new Tooltip("Excluir propriedade"));
+                
+                botoes.setSpacing(8);
+                botoes.setAlignment(Pos.CENTER);
+
+                // Ação do botão editar
+                btnEditar.setOnAction(event -> {
+                    Property property = getTableView().getItems().get(getIndex());
+                    editarProperty(property);
+                });
+
+                // Ação do botão excluir
+                btnExcluir.setOnAction(event -> {
+                    Property property = getTableView().getItems().get(getIndex());
+                    excluirProperty(property);
+                });
+            }
+
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    setGraphic(botoes);
+                }
+            }
+        });
+    }
+
+    private void editarProperty(Property property) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/FormProperty.fxml")); 
+            
+            Parent root = loader.load();
+
+            FormPropertyController formController = loader.getController();
+            formController.setPropertyToEdit(property);
+            formController.setMainController(this);
+
+            Stage stage = new Stage();
+            stage.setTitle("Editar Propriedade - " + property.getAddress());
+            stage.setScene(new Scene(root));
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setResizable(false);
+            stage.showAndWait();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            showMessage("Erro ao abrir formulário de edição: " + e.getMessage());
+        }
+    }
+
+
+    private void excluirProperty(Property property) {
+        Alert confirmacao = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmacao.setTitle("Confirmação de Exclusão");
+        confirmacao.setHeaderText("Excluir Propriedade");
+        confirmacao.setContentText("Tem certeza que deseja excluir a propriedade " + property.getAddress() + "?");
+
+        Optional<ButtonType> resultado = confirmacao.showAndWait();
+        if (resultado.isPresent() && resultado.get() == ButtonType.OK) {
+            try {
+                // Exclui a propriedade do banco de dados
+                propertyService.delete(property.getId());
+                
+                // Remove da lista local
+                propertiesList.remove(property);
+                
+                showMessage("Propriedade excluída com sucesso!");
+                
+            } catch (Exception e) {
+                e.printStackTrace();
+                showMessage("Erro ao excluir propriedade: " + e.getMessage());
+            }
+        }
     }
 
     private void setupActionsColumn() {
@@ -295,7 +393,7 @@ public class MainWindowTopUserController implements Initializable{
 
     private void editarUsuario(User user) {
     try {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/unip/view/form-user.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/FormUser.fxml"));
         
         Parent root = loader.load();
 
@@ -328,26 +426,26 @@ public class MainWindowTopUserController implements Initializable{
         users_table.setItems(usersList);
     }
     
-    // private void loadPropertiesData() {
+    private void loadPropertiesData() {
         
-    //     List<Property> properties = propertyService.findAll();
+        List<Property> properties = propertyService.findAll();
         
     
-    //     propertiesList = FXCollections.observableArrayList(properties);
+        propertiesList = FXCollections.observableArrayList(properties);
     
     
-    //     properties_table.setItems(usersList);
-    // }
+        properties_table.setItems(usersList);
+    }
     
     public void refreshUsersTables() {
         loadUsersData();
         
     }
     
-    // public void refreshPropertiesTables() {
-        //     loadPropertiesData();
+    public void refreshPropertiesTables() {
+            loadPropertiesData();
         
-        // }
+        }
 
     private void startCamera() {
         cameraService.startCamera(frame -> {
