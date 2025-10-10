@@ -14,4 +14,5 @@ public interface UserService {
     boolean checkFaceId(String faceId);
     List<User> findAll();
     void delete(Long id);
+    User update(User user);
 }

@@ -50,4 +50,24 @@ public class UserServiceImpl implements UserService {
     public void delete(Long id) {
         userRepository.deleteById(id);
     }
+
+    @Override
+    public User update(User user) {
+        User existingUser = userRepository.findById(user.getId())
+            .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+        
+        if (user.getFaceId() != null && 
+            !user.getFaceId().equals(existingUser.getFaceId()) &&
+            userRepository.existsByFaceId(user.getFaceId())) {
+            throw new RuntimeException("Rosto já cadastrado no sistema");
+        }
+        
+        existingUser.setName(user.getName());
+        existingUser.setEmail(user.getEmail());
+        existingUser.setRole(user.getRole());
+        existingUser.setFaceId(user.getFaceId());
+        
+        return userRepository.save(existingUser);
+    }
+
 }
