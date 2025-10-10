@@ -7,6 +7,7 @@ import java.util.ResourceBundle;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.TextField;
 
 public class FormPropertyController implements Initializable{
@@ -18,13 +19,13 @@ public class FormPropertyController implements Initializable{
     private Button btn_save;
 
     @FXML
-    private TextField txtfield_email;
+    private DatePicker dtpicker_fiscalization;
 
     @FXML
-    private TextField txtfield_level_access;
+    private TextField txtfield_address;
 
     @FXML
-    private TextField txtfield_username;
+    private TextField txtfield_owner;
 
     @FXML
     void cancel_edition(MouseEvent event) {
@@ -32,10 +33,10 @@ public class FormPropertyController implements Initializable{
     }
 
     @FXML
-    void save_new_access_level(MouseEvent event) {
+    void save_new_date(MouseEvent event) {
 
     }
-
+    
      @Override
     public void initialize(URL url, ResourceBundle rb) {
     }
