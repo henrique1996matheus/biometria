@@ -41,7 +41,6 @@
                       <TableColumn fx:id="tbl_col_owner" prefWidth="248.0" text="Owner" />
                         <TableColumn fx:id="tbl_col_address" prefWidth="303.0" text="Address" />
                         <TableColumn fx:id="tbl_col_fisc_date" prefWidth="318.0" text="Inspection Date" />
-                        <TableColumn prefWidth="56.0" />
                     </columns>
                   </TableView>
                </children>
@@ -57,6 +56,7 @@
                         <TableColumn fx:id="tb_col_email" prefWidth="455.0" text="e-mail" />
                      <TableColumn fx:id="tb_col_address" prefWidth="218.0" text="Address" />
                      <TableColumn fx:id="tb_col_level_access" prefWidth="218.0" text="Level Access" />
+                     <TableColumn fx:id="tb_col_acoes" text="Ações"/>
                      </columns>
                   </TableView>
                </children>

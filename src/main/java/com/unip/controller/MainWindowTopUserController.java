@@ -1,5 +1,6 @@
 package com.unip.controller;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -19,7 +20,11 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.geometry.Pos;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
@@ -28,14 +33,19 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.control.TableCell;
 
 public class MainWindowTopUserController implements Initializable{
 
@@ -117,6 +127,9 @@ public class MainWindowTopUserController implements Initializable{
 
     @FXML
     private TableColumn<User, String> tb_col_username;
+    
+    @FXML
+    private TableColumn<User, Void> tb_col_acoes;
 
     @FXML
     void open_add_users_pane(MouseEvent event) {
@@ -201,6 +214,8 @@ public class MainWindowTopUserController implements Initializable{
         tb_col_username.setCellValueFactory(new PropertyValueFactory<>("name"));
         tb_col_email.setCellValueFactory(new PropertyValueFactory<>("email"));
         tb_col_level_access.setCellValueFactory(new PropertyValueFactory<>("role"));
+
+        setupActionsColumn();
         
     }
     
@@ -210,7 +225,98 @@ public class MainWindowTopUserController implements Initializable{
         tbl_col_fisc_date.setCellValueFactory(new PropertyValueFactory<>("date"));
         
     }
-    
+
+    private void setupActionsColumn() {
+        tb_col_acoes.setCellFactory(param -> new TableCell<User, Void>() {
+            private final Button btnEditar = new Button("✏️");
+            private final Button btnExcluir = new Button("❌");
+            private final HBox botoes = new HBox(btnEditar, btnExcluir);
+
+            {
+                // Configuração dos botões
+                btnEditar.setStyle("-fx-background-color: transparent; -fx-font-size: 14px; -fx-cursor: hand;");
+                btnExcluir.setStyle("-fx-background-color: transparent; -fx-font-size: 14px; -fx-cursor: hand;");
+                
+                // Tooltips
+                btnEditar.setTooltip(new Tooltip("Editar usuário"));
+                btnExcluir.setTooltip(new Tooltip("Excluir usuário"));
+                
+                botoes.setSpacing(8);
+                botoes.setAlignment(Pos.CENTER);
+
+                // Ação do botão editar
+                btnEditar.setOnAction(event -> {
+                    User user = getTableView().getItems().get(getIndex());
+                    editarUsuario(user);
+                });
+
+                // Ação do botão excluir
+                btnExcluir.setOnAction(event -> {
+                    User user = getTableView().getItems().get(getIndex());
+                    excluirUsuario(user);
+                });
+            }
+
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    setGraphic(botoes);
+                }
+            }
+        });
+    }
+
+    private void excluirUsuario(User user) {
+        Alert confirmacao = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmacao.setTitle("Confirmação de Exclusão");
+        confirmacao.setHeaderText("Excluir Usuário");
+        confirmacao.setContentText("Tem certeza que deseja excluir o usuário " + user.getName() + "?");
+
+        Optional<ButtonType> resultado = confirmacao.showAndWait();
+        if (resultado.isPresent() && resultado.get() == ButtonType.OK) {
+            try {
+                // Exclui o usuário do banco de dados
+                userService.delete(user.getId());
+                
+                // Remove da lista local
+                usersList.remove(user);
+                
+                showMessage("Usuário excluído com sucesso!");
+                
+            } catch (Exception e) {
+                e.printStackTrace();
+                showMessage("Erro ao excluir usuário: " + e.getMessage());
+            }
+        }
+    }
+
+    private void editarUsuario(User user) {
+    try {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/unip/view/form-user.fxml"));
+        
+        Parent root = loader.load();
+
+        FormUserController formController = loader.getController();
+        formController.setUserToEdit(user);
+        formController.setMainController(this);
+
+        Stage stage = new Stage();
+        stage.setTitle("Editar Usuário - " + user.getName());
+        stage.setScene(new Scene(root));
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.setResizable(false);
+        stage.showAndWait();
+
+    } catch (IOException e) {
+        e.printStackTrace();
+        showMessage("Erro ao abrir formulário de edição: " + e.getMessage());
+    }
+}
+
+
     private void loadUsersData() {
         
         List<User> users = userService.findAll();
