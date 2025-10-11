@@ -1,7 +1,14 @@
 package com.unip.controller;
 
 import java.net.URL;
+import java.time.LocalDate;
+import java.util.List;
 import java.util.ResourceBundle;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.unip.model.RuralProperty;
+import com.unip.service.RuralPropertyService;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -16,16 +23,16 @@ import javafx.scene.layout.VBox;
 
 public class MainWindowBaseUserController implements Initializable{
     
-    // @Autowired
-    // private PropertyService propertyService;
+    @Autowired
+    private RuralPropertyService propertyService;
 
-    // private ObservableList<Property> propertiesList;
+    private ObservableList<RuralProperty> propertiesList;
 
-    @FXML
+     @FXML
     private Button properties_btn;
 
     @FXML
-    private TableView<?> properties_table;
+    private TableView<RuralProperty> properties_table;
 
     @FXML
     private VBox properties_vbox;
@@ -34,43 +41,38 @@ public class MainWindowBaseUserController implements Initializable{
     private StackPane stc_pane_pages;
 
     @FXML
-    private TableColumn<?, String> tbl_col_address;
+    private TableColumn<RuralProperty, LocalDate> tbl_col_fisc_date;
 
     @FXML
-    private TableColumn<?, String> tbl_col_fisc_date;
+    private TableColumn<RuralProperty, String> tbl_col_owner;
 
-    @FXML
-    private TableColumn<?, ?> tbl_col_owner;
-
-    // private final PropriedadeRuralService propertyService = new PropriedadeRuralService();
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
 
         
-        // loadPropertiesData();
+         loadPropertiesData();
     }
 
-    // public void refreshPropertiesTables() {
-    //     loadPropertiesData();
+     public void refreshPropertiesTables() {
+        loadPropertiesData();
 
-    // }
+     }
 
-    // private void loadPropertiesData() {
+     private void loadPropertiesData() {
 
-    //     List<Property> properties = propertyService.findAll();
+        List<RuralProperty> properties = propertyService.listarTodasPropriedades();
         
 
-    //     propertiesList = FXCollections.observableArrayList(properties);
+        propertiesList = FXCollections.observableArrayList(properties);
         
 
-    //     properties_table.setItems(usersList);
-    // }
+         properties_table.setItems(propertiesList);
+     }
 
-    // private void setupPropertiesTable() {
-    //     tb_col_address.setCellValueFactory(new PropertyValueFactory<>("address"));
-    //     tbl_col_owner.setCellValueFactory(new PropertyValueFactory<>("owner"));
-    //     tbl_col_fisc_date.setCellValueFactory(new PropertyValueFactory<>("date"));
+     private void setupPropertiesTable() {
+         tbl_col_owner.setCellValueFactory(new PropertyValueFactory<>("owner"));
+         tbl_col_fisc_date.setCellValueFactory(new PropertyValueFactory<>("date"));
 
-    // }
+     }
 }

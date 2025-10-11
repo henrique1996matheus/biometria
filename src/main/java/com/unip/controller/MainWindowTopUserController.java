@@ -2,6 +2,7 @@ package com.unip.controller;
 
 import java.io.IOException;
 import java.net.URL;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.Optional;
@@ -10,11 +11,13 @@ import org.bytedeco.opencv.opencv_core.Mat;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.unip.model.Role;
+import com.unip.model.RuralProperty;
 import com.unip.model.User;
 import com.unip.service.UserService;
 
 import com.unip.service.CameraService;
 import com.unip.service.FaceService;
+import com.unip.service.RuralPropertyService;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -64,18 +67,21 @@ public class MainWindowTopUserController implements Initializable{
     private volatile boolean cameraActive = false;
     
     @Autowired
-    private PropertyService propertyService;
+    private RuralPropertyService propertyService;
 
-    private ObservableList<Property> propertiesList;
+    private ObservableList<RuralProperty> propertiesList;
 
     @FXML
     private Button add_user_btn;
 
     @FXML
+    private VBox add_users;
+
+    @FXML
     private Button btn_register_user;
 
     @FXML
-    private VBox add_users;
+    private ImageView camera_view;
 
     @FXML
     private Button properties_btn;
@@ -83,45 +89,23 @@ public class MainWindowTopUserController implements Initializable{
     @FXML
     private VBox properties_infos;
 
-    
+    @FXML
+    private TableView<RuralProperty> properties_table;
+
     @FXML
     private RadioButton radio_camera;
-    
+
     @FXML
     private RadioButton radio_mark_face;
-    
+
     @FXML
     private StackPane stc_pane_pages;
 
     @FXML
-    private TableView<Property> properties_table;
+    private TableColumn<User, Void> tb_col_acoes;
 
     @FXML
-    private TableColumn<Property, String> tb_col_address;
-    
-    @FXML
-    private TableColumn<Property, String> tbl_col_address;
-    
-    @FXML
-    private TableColumn<Property, DateTime> tbl_col_fisc_date;
-    
-    @FXML
-    private TableColumn<Property, String> tbl_col_owner;
-
-    @FXML
-    private TableColumn<Property, Void> tb_col_acoes_properties;
-    
-    @FXML
-    private Button users_btn;
-
-    @FXML
-    private ImageView camera_view;
-    
-    @FXML
-    private VBox users_info;
-    
-    @FXML
-    private TableView<User> users_table;
+    private TableColumn<RuralProperty, Void> tb_col_acoes_properties;
 
     @FXML
     private TableColumn<User, String> tb_col_email;
@@ -131,9 +115,21 @@ public class MainWindowTopUserController implements Initializable{
 
     @FXML
     private TableColumn<User, String> tb_col_username;
-    
+
     @FXML
-    private TableColumn<User, Void> tb_col_acoes;
+    private TableColumn<RuralProperty, LocalDate> tbl_col_fisc_date;
+
+    @FXML
+    private TableColumn<RuralProperty, String> tbl_col_owner;
+
+    @FXML
+    private Button users_btn;
+
+    @FXML
+    private VBox users_info;
+
+    @FXML
+    private TableView<User> users_table;
 
     @FXML
     void open_add_users_pane(MouseEvent event) {
@@ -225,8 +221,7 @@ public class MainWindowTopUserController implements Initializable{
     }
     
     private void setupPropertiesTable() {
-
-        tb_col_address.setCellValueFactory(new PropertyValueFactory<>("address"));
+        
         tbl_col_owner.setCellValueFactory(new PropertyValueFactory<>("owner"));
         tbl_col_fisc_date.setCellValueFactory(new PropertyValueFactory<>("date"));
         
@@ -234,7 +229,7 @@ public class MainWindowTopUserController implements Initializable{
     }
 
     private void setupPropertiesActionsColumn() {
-        tb_col_acoes_properties.setCellFactory(param -> new TableCell<Property, Void>() {
+        tb_col_acoes_properties.setCellFactory(param -> new TableCell<RuralProperty, Void>() {
             private final Button btnEditar = new Button("✏️");
             private final Button btnExcluir = new Button("❌");
             private final HBox botoes = new HBox(btnEditar, btnExcluir);
@@ -253,13 +248,13 @@ public class MainWindowTopUserController implements Initializable{
 
                 // Ação do botão editar
                 btnEditar.setOnAction(event -> {
-                    Property property = getTableView().getItems().get(getIndex());
+                    RuralProperty property = getTableView().getItems().get(getIndex());
                     editarProperty(property);
                 });
 
                 // Ação do botão excluir
                 btnExcluir.setOnAction(event -> {
-                    Property property = getTableView().getItems().get(getIndex());
+                    RuralProperty property = getTableView().getItems().get(getIndex());
                     excluirProperty(property);
                 });
             }
@@ -276,7 +271,7 @@ public class MainWindowTopUserController implements Initializable{
         });
     }
 
-    private void editarProperty(Property property) {
+    private void editarProperty(RuralProperty property) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/FormProperty.fxml")); 
             
@@ -287,7 +282,7 @@ public class MainWindowTopUserController implements Initializable{
             formController.setMainController(this);
 
             Stage stage = new Stage();
-            stage.setTitle("Editar Propriedade - " + property.getAddress());
+            stage.setTitle("Editar Propriedade - " + property.getOwner());
             stage.setScene(new Scene(root));
             stage.initModality(Modality.APPLICATION_MODAL);
             stage.setResizable(false);
@@ -300,19 +295,17 @@ public class MainWindowTopUserController implements Initializable{
     }
 
 
-    private void excluirProperty(Property property) {
+    private void excluirProperty(RuralProperty property) {
         Alert confirmacao = new Alert(Alert.AlertType.CONFIRMATION);
         confirmacao.setTitle("Confirmação de Exclusão");
         confirmacao.setHeaderText("Excluir Propriedade");
-        confirmacao.setContentText("Tem certeza que deseja excluir a propriedade " + property.getAddress() + "?");
+        confirmacao.setContentText("Tem certeza que deseja excluir a propriedade " + property.getOwner() + "?");
 
         Optional<ButtonType> resultado = confirmacao.showAndWait();
         if (resultado.isPresent() && resultado.get() == ButtonType.OK) {
             try {
-                // Exclui a propriedade do banco de dados
-                propertyService.delete(property.getId());
+                propertyService.deletarPropriedade(property.getId());
                 
-                // Remove da lista local
                 propertiesList.remove(property);
                 
                 showMessage("Propriedade excluída com sucesso!");
@@ -331,24 +324,20 @@ public class MainWindowTopUserController implements Initializable{
             private final HBox botoes = new HBox(btnEditar, btnExcluir);
 
             {
-                // Configuração dos botões
                 btnEditar.setStyle("-fx-background-color: transparent; -fx-font-size: 14px; -fx-cursor: hand;");
                 btnExcluir.setStyle("-fx-background-color: transparent; -fx-font-size: 14px; -fx-cursor: hand;");
                 
-                // Tooltips
                 btnEditar.setTooltip(new Tooltip("Editar usuário"));
                 btnExcluir.setTooltip(new Tooltip("Excluir usuário"));
                 
                 botoes.setSpacing(8);
                 botoes.setAlignment(Pos.CENTER);
 
-                // Ação do botão editar
                 btnEditar.setOnAction(event -> {
                     User user = getTableView().getItems().get(getIndex());
                     editarUsuario(user);
                 });
 
-                // Ação do botão excluir
                 btnExcluir.setOnAction(event -> {
                     User user = getTableView().getItems().get(getIndex());
                     excluirUsuario(user);
@@ -428,13 +417,13 @@ public class MainWindowTopUserController implements Initializable{
     
     private void loadPropertiesData() {
         
-        List<Property> properties = propertyService.findAll();
+        List<RuralProperty> properties = propertyService.listarTodasPropriedades();
         
     
         propertiesList = FXCollections.observableArrayList(properties);
     
     
-        properties_table.setItems(usersList);
+        properties_table.setItems(propertiesList);
     }
     
     public void refreshUsersTables() {
@@ -500,7 +489,7 @@ public class MainWindowTopUserController implements Initializable{
 
         // ComboBox para selecionar o nível de acesso
         ComboBox<Role> roleComboBox = new ComboBox<>();
-        roleComboBox.getItems().addAll(Role.LEVEL_1, Role.LEVEL_2, Role.LEVEL_3);
+        roleComboBox.getItems().addAll(Role.LEVEL_1, Role.LEVEL_2);
         roleComboBox.setValue(Role.LEVEL_1);
 
         grid.add(new Label("Nome:"), 0, 0);

@@ -1,6 +1,8 @@
 package com.unip.controller;
 
 import java.net.URL;
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
@@ -8,11 +10,15 @@ import org.bytedeco.opencv.opencv_core.Mat;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.unip.model.Role;
+import com.unip.model.RuralProperty;
 import com.unip.service.CameraService;
 import com.unip.service.FaceService;
+import com.unip.service.RuralPropertyService;
 import com.unip.service.UserService;
 
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
@@ -25,6 +31,7 @@ import javafx.scene.control.RadioButton;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
@@ -33,14 +40,12 @@ import javafx.scene.layout.VBox;
 
 public class MainWindowIntermediaryUserController implements Initializable{
     
-    // @Autowired
-    // private PropertyService propertyService;
+    @Autowired
+    private RuralPropertyService propertyService;
 
-    // private ObservableList<Property> propertiesList;
+    private ObservableList<RuralProperty> propertiesList;
 
-    // private final PropriedadeRuralService propertyService = new PropriedadeRuralService();
-
-     @Autowired
+    @Autowired
     private CameraService cameraService;
 
     @Autowired
@@ -56,6 +61,9 @@ public class MainWindowIntermediaryUserController implements Initializable{
     private Button btn_register_user;
 
     @FXML
+    private ImageView camera_view;
+
+    @FXML
     private VBox medium_acess_add_users;
 
     @FXML
@@ -65,7 +73,7 @@ public class MainWindowIntermediaryUserController implements Initializable{
     private Button properties_btn;
 
     @FXML
-    private TableView<?> properties_table;
+    private TableView<RuralProperty> properties_table;
 
     @FXML
     private RadioButton radio_camera;
@@ -77,16 +85,10 @@ public class MainWindowIntermediaryUserController implements Initializable{
     private StackPane stc_pane_pages;
 
     @FXML
-    private TableColumn<?, ?> tbl_col_address;
+    private TableColumn<RuralProperty, LocalDate> tbl_col_fisc_date;
 
     @FXML
-    private TableColumn<?, ?> tbl_col_fisc_date;
-
-    @FXML
-    private TableColumn<?, ?> tbl_col_owner;
-
-    @FXML
-    private ImageView camera_view;
+    private TableColumn<RuralProperty, String> tbl_col_owner;
 
     @FXML
     void open_add_user_pane(MouseEvent event) {
@@ -100,7 +102,7 @@ public class MainWindowIntermediaryUserController implements Initializable{
         medium_acess_add_users.setVisible(false);
         medium_acess_user_prop.setVisible(true);
 
-        // loadPropertiesData();
+        loadPropertiesData();
 
         stopCamera();
     }
@@ -144,32 +146,32 @@ public class MainWindowIntermediaryUserController implements Initializable{
         medium_acess_add_users.setVisible(false);
         medium_acess_user_prop.setVisible(true);
 
-        // loadPropertiesData();
+         loadPropertiesData();
 
     }
 
-    // public void refreshPropertiesTables() {
-    //     loadPropertiesData();
+     public void refreshPropertiesTables() {
+         loadPropertiesData();
 
-    // }
+     }
 
-    // private void loadPropertiesData() {
-
-    //     List<Property> properties = propertyService.findAll();
+    private void loadPropertiesData() {
         
-
-    //     propertiesList = FXCollections.observableArrayList(properties);
+        List<RuralProperty> properties = propertyService.listarTodasPropriedades();
         
+    
+        propertiesList = FXCollections.observableArrayList(properties);
+    
+    
+        properties_table.setItems(propertiesList);
+    }
 
-    //     properties_table.setItems(usersList);
-    // }
+    private void setupPropertiesTable() {
 
-    // private void setupPropertiesTable() {
-    //     tb_col_address.setCellValueFactory(new PropertyValueFactory<>("address"));
-    //     tbl_col_owner.setCellValueFactory(new PropertyValueFactory<>("owner"));
-    //     tbl_col_fisc_date.setCellValueFactory(new PropertyValueFactory<>("date"));
-
-    // }
+        tbl_col_owner.setCellValueFactory(new PropertyValueFactory<>("owner"));
+        tbl_col_fisc_date.setCellValueFactory(new PropertyValueFactory<>("date"));
+        
+    }
 
     private void startCamera() {
         cameraService.startCamera(frame -> {
@@ -224,7 +226,7 @@ public class MainWindowIntermediaryUserController implements Initializable{
 
         // ComboBox para selecionar o nível de acesso
         ComboBox<Role> roleComboBox = new ComboBox<>();
-        roleComboBox.getItems().addAll(Role.LEVEL_1, Role.LEVEL_2, Role.LEVEL_3);
+        roleComboBox.getItems().addAll(Role.LEVEL_1, Role.LEVEL_2);
         roleComboBox.setValue(Role.LEVEL_1);
 
         grid.add(new Label("Nome:"), 0, 0);
