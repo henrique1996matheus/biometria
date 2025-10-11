@@ -3,8 +3,11 @@ package com.unip.service;
 import org.bytedeco.opencv.global.opencv_videoio;
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.bytedeco.opencv.opencv_videoio.VideoCapture;
+import org.springframework.stereotype.Service;
+
 import java.util.function.Consumer;
 
+@Service
 public class CameraService {
 
     private VideoCapture videoCapture;
@@ -15,7 +18,7 @@ public class CameraService {
         stopCamera();
         cameraAtiva = true;
         cameraThread = new Thread(() -> {
-            //videoCapture = new VideoCapture(0, opencv_videoio.CAP_DSHOW);
+            // videoCapture = new VideoCapture(0, opencv_videoio.CAP_DSHOW);
             videoCapture = createVideoCapture();
 
             if (!videoCapture.isOpened()) {
@@ -81,8 +84,10 @@ public class CameraService {
 
     public void stopCamera() {
         cameraAtiva = false;
-        if (cameraThread != null) cameraThread.interrupt();
-        if (videoCapture != null && videoCapture.isOpened()) videoCapture.release();
+        if (cameraThread != null)
+            cameraThread.interrupt();
+        if (videoCapture != null && videoCapture.isOpened())
+            videoCapture.release();
     }
 
     public boolean isCameraActive() {

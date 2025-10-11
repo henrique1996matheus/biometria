@@ -7,9 +7,10 @@ import org.bytedeco.opencv.opencv_face.LBPHFaceRecognizer;
 
 
 import java.util.*;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 
+@Service
 public class FaceService {
     private final FaceRecognizer faceRecognizer;
     private final Map<Integer, String> idToNameMap = new HashMap<>();
