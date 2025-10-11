@@ -2,21 +2,13 @@ package com.unip.service;
 
 import com.unip.model.Role;
 import org.bytedeco.opencv.opencv_core.Mat;
-import org.bytedeco.opencv.opencv_core.MatVector;
-import org.bytedeco.opencv.global.opencv_imgcodecs;
-import org.bytedeco.opencv.opencv_face.LBPHFaceRecognizer;
-import org.springframework.stereotype.Service;
 import org.bytedeco.opencv.opencv_face.FaceRecognizer;
-import org.bytedeco.javacpp.IntPointer;
-import org.bytedeco.javacpp.DoublePointer;
+import org.bytedeco.opencv.opencv_face.LBPHFaceRecognizer;
 
-import java.io.*;
+
 import java.util.*;
 import java.util.function.BiConsumer;
 
-import static org.bytedeco.opencv.global.opencv_core.CV_32SC1;
-import static org.bytedeco.opencv.global.opencv_imgproc.cvtColor;
-import static org.bytedeco.opencv.global.opencv_imgproc.COLOR_BGR2GRAY;
 
 @Service
 public class FaceService {
@@ -24,171 +16,29 @@ public class FaceService {
     private final Map<Integer, String> idToNameMap = new HashMap<>();
     private final Map<Integer, String> idToEmailMap = new HashMap<>();
     private final Map<Integer, Role> idToRoleMap = new HashMap<>();
-    private int nextId = 0;
 
     private final String FACES_DIR = "faces";
     private final String LABELS_FILE = FACES_DIR + "/labels.txt";
 
-    private static final double LIMIAR_DUPLICATA = 50.0;
-    private static final double LIMIAR_RECONHECIMENTO = 60.0;
+
+    private final Map<Integer, Integer> recognitionAttempts = new HashMap<>();
+    private final Map<Integer, Integer> successfulRecognitions = new HashMap<>();
+
+    private final FaceProcessingHelper helper;
 
     public FaceService() {
-        faceRecognizer = LBPHFaceRecognizer.create();
-        loadLabels();
-        retrainModel();
+        this.faceRecognizer = LBPHFaceRecognizer.create();
+        this.helper = new FaceProcessingHelper(FACES_DIR, LABELS_FILE, faceRecognizer,
+                idToNameMap, idToEmailMap, idToRoleMap, recognitionAttempts, successfulRecognitions);
+        helper.loadLabels();
+        helper.retrainModel();
     }
 
-    public void register(Mat face, String personName, String email, Role role, BiConsumer<String,Role> callback) {
-        Mat grayFace = new Mat();
-        cvtColor(face, grayFace, COLOR_BGR2GRAY);
-
-        // Liminar mais alta - Evita falsos positivos
-        double LIMIAR_DUPLICATA = 50.0;
-
-        if (!idToNameMap.isEmpty()) {
-            try {
-                IntPointer label = new IntPointer(1);
-                DoublePointer confidence = new DoublePointer(1);
-                faceRecognizer.predict(grayFace, label, confidence);
-
-                double conf = confidence.get(0);
-                System.out.println("DEBUG REGISTER - Confiança: " + conf + ", Limiar: " + LIMIAR_DUPLICATA);
-
-                if (conf < LIMIAR_DUPLICATA) {
-                    String existingName = idToNameMap.get(label.get(0));
-                    callback.accept("❌ Erro: Rosto já registrado como '" + existingName + "'", null);
-                    return;
-                }
-            } catch (Exception e) {
-                System.out.println("Modelo não treinado, primeiro registro...");
-            }
-        }
-
-        // Verificar se email já existe
-        if (idToEmailMap.containsValue(email)) {
-            callback.accept("❌ Erro: Email já registrado", null);
-            return;
-        }
-
-        int personId = nextId++;
-        idToNameMap.put(personId, personName);
-        idToEmailMap.put(personId, email);
-        idToRoleMap.put(personId, role);
-
-        File personDir = new File(FACES_DIR, String.valueOf(personId));
-        personDir.mkdirs();
-        String filename = new File(personDir, System.currentTimeMillis() + ".png").getAbsolutePath();
-        opencv_imgcodecs.imwrite(filename, grayFace);
-
-        saveLabels();
-        retrainModel();
-
-        callback.accept("✅ Sucesso: " + personName + " registrado com email " + email + ", nível " + role, role);
+    public void register(Mat face, String personName, String email, Role role, Consumer<String> callback) {
+        helper.register(face, personName, email, role, callback);
     }
 
-    public void authenticate(Mat face, BiConsumer<String, Role> callback) {
-        if (idToNameMap.isEmpty()) {
-            callback.accept("❌ Erro: Nenhum rosto registrado no sistema!", null);
-            return;
-        }
-
-        IntPointer label = new IntPointer(1);
-        DoublePointer confidence = new DoublePointer(1);
-
-        Mat grayFace = new Mat();
-        cvtColor(face, grayFace, COLOR_BGR2GRAY);
-        faceRecognizer.predict(grayFace, label, confidence);
-
-        int predictedLabel = label.get(0);
-        double conf = confidence.get(0);
-
-        // Limiar de reconhecimento aumentado
-        double LIMIAR_RECONHECIMENTO = 60.0;
-
-        if (predictedLabel == -1 || conf > LIMIAR_RECONHECIMENTO) {
-            callback.accept("❌ Rosto não reconhecido (confiança: " + conf + ")", null);
-        } else {
-            String personName = idToNameMap.get(predictedLabel);
-            String email = idToEmailMap.get(predictedLabel);
-            Role role = idToRoleMap.get(predictedLabel);
-
-            String message = "✅ Autenticado como: " + personName + " (" + email + ") - Confiança: " + conf;
-
-            callback.accept(message, role);
-        }
-    }
-
-    private void retrainModel() {
-        List<Mat> images = new ArrayList<>();
-        List<Integer> labels = new ArrayList<>();
-
-        for (Map.Entry<Integer, String> entry : idToNameMap.entrySet()) {
-            int id = entry.getKey();
-            File personDir = new File(FACES_DIR, String.valueOf(id));
-            if (!personDir.exists())
-                continue;
-
-            for (File imgFile : Objects.requireNonNull(personDir.listFiles())) {
-                Mat img = opencv_imgcodecs.imread(imgFile.getAbsolutePath(), opencv_imgcodecs.IMREAD_GRAYSCALE);
-                if (!img.empty()) {
-                    images.add(img);
-                    labels.add(id);
-                }
-            }
-        }
-
-        if (!images.isEmpty()) {
-            MatVector matImages = new MatVector(images.size());
-            Mat labelsMat = new Mat(labels.size(), 1, CV_32SC1);
-
-            for (int i = 0; i < images.size(); i++) {
-                matImages.put(i, images.get(i));
-                labelsMat.ptr(i).putInt(labels.get(i));
-            }
-
-            faceRecognizer.train(matImages, labelsMat);
-            System.out.println(
-                    "Modelo treinado com " + images.size() + " imagens de " + idToNameMap.size() + " usuários");
-        }
-    }
-
-    private void loadLabels() {
-        File file = new File(LABELS_FILE);
-        if (!file.exists())
-            return;
-
-        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] parts = line.split(";");
-                if (parts.length >= 3) {
-                    int id = Integer.parseInt(parts[0]);
-                    String name = parts[1];
-                    String email = parts[2];
-                    Role role = (parts.length >= 4) ? Role.valueOf(parts[3]) : Role.LEVEL_1; 
-                    idToNameMap.put(id, name);
-                    idToEmailMap.put(id, email);
-                    idToRoleMap.put(id, role);
-                    if (id >= nextId)
-                        nextId = id + 1;
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void saveLabels() {
-        try (PrintWriter pw = new PrintWriter(new FileWriter(LABELS_FILE))) {
-            for (Map.Entry<Integer, String> entry : idToNameMap.entrySet()) {
-                int id = entry.getKey();
-                String name = entry.getValue();
-                String email = idToEmailMap.get(id);
-                Role role = idToRoleMap.get(id);
-                pw.println(id + ";" + name + ";" + email + ";" + role.name());
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public void authenticate(Mat face, Consumer<String> callback) {
+        helper.authenticate(face, callback);
     }
 }
