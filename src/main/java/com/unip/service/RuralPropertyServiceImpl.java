@@ -3,9 +3,12 @@ package com.unip.service;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.springframework.stereotype.Service;
+
 import com.unip.model.RuralProperty;
 import com.unip.repository.RuralPropertyRepository;
 
+@Service
 public class RuralPropertyServiceImpl implements RuralPropertyService {
 
     private final RuralPropertyRepository repository;
