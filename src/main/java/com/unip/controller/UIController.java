@@ -1,5 +1,7 @@
 package com.unip.controller;
 
+import java.util.Optional;
+
 import com.unip.model.Role;
 
 import javafx.application.Platform;
@@ -14,20 +16,23 @@ import javafx.scene.image.ImageView;
 
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
+import com.unip.config.SpringContext;
 import com.unip.service.CameraService;
 import com.unip.service.FaceService;
-
-import java.util.Optional;
-
 import com.unip.service.RuralPropertyService;
+import com.unip.service.UserService; // ADICIONE ESTE IMPORT
 
 @Component
 public class UIController {
 
     @Autowired
-    private RuralPropertyService propertyService; // Já deve estar injetado aqui
+    private RuralPropertyService propertyService;
+
+    @Autowired
+    private UserService userService; // ADICIONE ESTA INJEÇÃO
 
     @FXML
     private RadioButton cameraToggle;
@@ -113,6 +118,20 @@ public class UIController {
                 ex.printStackTrace();
             }
         });
+        Platform.runLater(this::setupKeyboardShortcuts);
+    }
+
+    private void setupKeyboardShortcuts() {
+        Scene scene = cameraView.getScene();
+        if (scene != null) {
+            scene.setOnKeyPressed(event -> {
+                switch (event.getCode()) {
+                    case F1 -> openRoleWindow(Role.LEVEL_1);
+                    case F2 -> openRoleWindow(Role.LEVEL_2);
+                    case F3 -> openRoleWindow(Role.LEVEL_3);
+                }
+            });
+        }
     }
 
     private void showRegistrationDialog(Mat frame) {
@@ -166,10 +185,10 @@ public class UIController {
             }
 
             faceService.register(frame, name, email, role, (message, registeredRole) -> {
-            showMessage(message);
-            if(registeredRole != null){
-                openRoleWindow(registeredRole);
-            }
+                showMessage(message);
+                if(registeredRole != null){
+                    openRoleWindow(registeredRole);
+                }
             });
         });
     }
@@ -248,16 +267,21 @@ public class UIController {
             Stage currentStage = (Stage) cameraView.getScene().getWindow();
             currentStage.close();
             
+            ApplicationContext context = SpringContext.getApplicationContext();
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlFile));
+            loader.setControllerFactory(context::getBean); 
+            
             Parent root = loader.load();
             
             Object controller = loader.getController();
+            
             if (controller instanceof MainWindowBaseUserController) {
                 ((MainWindowBaseUserController) controller).setPropertyService(propertyService);
             } else if (controller instanceof MainWindowIntermediaryUserController) {
                 ((MainWindowIntermediaryUserController) controller).setPropertyService(propertyService);
             } else if (controller instanceof MainWindowTopUserController) {
-                ((MainWindowTopUserController) controller).setPropertyService(propertyService);
+                MainWindowTopUserController topController = (MainWindowTopUserController) controller;
+                topController.setPropertyService(propertyService);
             }
             
             Stage newStage = new Stage();
@@ -271,5 +295,4 @@ public class UIController {
         }
     });
 }
-
 }
