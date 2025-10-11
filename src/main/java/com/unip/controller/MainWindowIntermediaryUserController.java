@@ -8,6 +8,7 @@ import java.util.ResourceBundle;
 
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.unip.config.SpringContext;
 import com.unip.model.Role;
@@ -39,6 +40,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
+@Component
 public class MainWindowIntermediaryUserController implements Initializable{
     
     private RuralPropertyService propertyService; 

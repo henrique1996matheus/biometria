@@ -5,6 +5,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.ResourceBundle;
 
+import org.springframework.stereotype.Component;
+
 import com.unip.config.SpringContext;
 import com.unip.model.RuralProperty;
 import com.unip.service.RuralPropertyService;
@@ -20,9 +22,10 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
-public class MainWindowBaseUserController implements Initializable{
-    
-    private RuralPropertyService propertyService; 
+@Component
+public class MainWindowBaseUserController implements Initializable {
+
+    private RuralPropertyService propertyService;
     private ObservableList<RuralProperty> propertiesList;
 
     @FXML
@@ -46,8 +49,8 @@ public class MainWindowBaseUserController implements Initializable{
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         this.propertyService = SpringContext.getBean(RuralPropertyService.class);
-        
-        setupPropertiesTable(); 
+
+        setupPropertiesTable();
         loadPropertiesData();
     }
 
@@ -67,11 +70,11 @@ public class MainWindowBaseUserController implements Initializable{
 
     private void setupPropertiesTable() {
         tbl_col_owner.setCellValueFactory(new PropertyValueFactory<>("owner"));
-        tbl_col_fisc_date.setCellValueFactory(new PropertyValueFactory<>("inspectionDate")); 
+        tbl_col_fisc_date.setCellValueFactory(new PropertyValueFactory<>("inspectionDate"));
     }
 
     public void setPropertyService(RuralPropertyService propertyService) {
         this.propertyService = propertyService;
-        loadPropertiesData(); 
+        loadPropertiesData();
     }
 }
