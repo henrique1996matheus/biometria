@@ -9,7 +9,9 @@ import java.util.Optional;
 
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
 
+import com.unip.config.SpringContext;
 import com.unip.model.Role;
 import com.unip.model.RuralProperty;
 import com.unip.model.User;
@@ -50,6 +52,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.control.TableCell;
 
+@Controller
 public class MainWindowTopUserController implements Initializable{
 
     @Autowired
@@ -66,8 +69,7 @@ public class MainWindowTopUserController implements Initializable{
     private volatile boolean markFaces = false;
     private volatile boolean cameraActive = false;
     
-    @Autowired
-    private RuralPropertyService propertyService;
+    private RuralPropertyService propertyService; 
 
     private ObservableList<RuralProperty> propertiesList;
 
@@ -201,7 +203,7 @@ public class MainWindowTopUserController implements Initializable{
         users_info.setVisible(false);
 
         setupUsersTable();
-        setupPropertiesTable();
+        setupPropertiesTable(); 
         loadUsersData();
         loadPropertiesData();
 
@@ -223,7 +225,7 @@ public class MainWindowTopUserController implements Initializable{
     private void setupPropertiesTable() {
         
         tbl_col_owner.setCellValueFactory(new PropertyValueFactory<>("owner"));
-        tbl_col_fisc_date.setCellValueFactory(new PropertyValueFactory<>("date"));
+        tbl_col_fisc_date.setCellValueFactory(new PropertyValueFactory<>("inspectionDate")); 
         
         setupPropertiesActionsColumn();
     }
@@ -235,24 +237,21 @@ public class MainWindowTopUserController implements Initializable{
             private final HBox botoes = new HBox(btnEditar, btnExcluir);
 
             {
-                // Configuração dos botões
+
                 btnEditar.setStyle("-fx-background-color: transparent; -fx-font-size: 14px; -fx-cursor: hand;");
                 btnExcluir.setStyle("-fx-background-color: transparent; -fx-font-size: 14px; -fx-cursor: hand;");
                 
-                // Tooltips
                 btnEditar.setTooltip(new Tooltip("Editar propriedade"));
                 btnExcluir.setTooltip(new Tooltip("Excluir propriedade"));
                 
                 botoes.setSpacing(8);
                 botoes.setAlignment(Pos.CENTER);
 
-                // Ação do botão editar
                 btnEditar.setOnAction(event -> {
                     RuralProperty property = getTableView().getItems().get(getIndex());
                     editarProperty(property);
                 });
 
-                // Ação do botão excluir
                 btnExcluir.setOnAction(event -> {
                     RuralProperty property = getTableView().getItems().get(getIndex());
                     excluirProperty(property);
@@ -365,10 +364,9 @@ public class MainWindowTopUserController implements Initializable{
         Optional<ButtonType> resultado = confirmacao.showAndWait();
         if (resultado.isPresent() && resultado.get() == ButtonType.OK) {
             try {
-                // Exclui o usuário do banco de dados
+
                 userService.delete(user.getId());
                 
-                // Remove da lista local
                 usersList.remove(user);
                 
                 showMessage("Usuário excluído com sucesso!");
@@ -416,14 +414,17 @@ public class MainWindowTopUserController implements Initializable{
     }
     
     private void loadPropertiesData() {
+        if (propertyService != null) { 
+            List<RuralProperty> properties = propertyService.listarTodasPropriedades();
+            
         
-        List<RuralProperty> properties = propertyService.listarTodasPropriedades();
+            propertiesList = FXCollections.observableArrayList(properties);
         
-    
-        propertiesList = FXCollections.observableArrayList(properties);
-    
-    
-        properties_table.setItems(propertiesList);
+        
+            properties_table.setItems(propertiesList);
+        } else {
+            System.err.println("ERRO: propertyService é null!");
+        }
     }
     
     public void refreshUsersTables() {
@@ -432,9 +433,8 @@ public class MainWindowTopUserController implements Initializable{
     }
     
     public void refreshPropertiesTables() {
-            loadPropertiesData();
-        
-        }
+        loadPropertiesData();
+    }
 
     private void startCamera() {
         cameraService.startCamera(frame -> {
@@ -488,7 +488,7 @@ public class MainWindowTopUserController implements Initializable{
         emailField.setPromptText("email@exemplo.com");
 
         ComboBox<Role> roleComboBox = new ComboBox<>();
-        roleComboBox.getItems().addAll(Role.LEVEL_1, Role.LEVEL_2);
+        roleComboBox.getItems().addAll(Role.LEVEL_1, Role.LEVEL_2); 
         roleComboBox.setValue(Role.LEVEL_1);
 
         grid.add(new Label("Nome:"), 0, 0);
@@ -570,4 +570,11 @@ public class MainWindowTopUserController implements Initializable{
         this.propertyService = propertyService;
         loadPropertiesData(); 
     }
+
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+        if (users_table != null) {
+            loadUsersData();
+    }
+}
 }
