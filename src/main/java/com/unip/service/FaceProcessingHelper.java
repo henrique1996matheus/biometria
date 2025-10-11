@@ -12,7 +12,7 @@ import org.bytedeco.opencv.opencv_face.FaceRecognizer;
 
 import java.io.*;
 import java.util.*;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 import static org.bytedeco.opencv.global.opencv_core.CV_32FC1;
 import static org.bytedeco.opencv.global.opencv_core.CV_32SC1;
@@ -52,7 +52,7 @@ class FaceProcessingHelper {
         this.successfulRecognitions = successfulRecognitions;
     }
 
-    void register(Mat face, String personName, String email, Role role, Consumer<String> callback) {
+    void register(Mat face, String personName, String email, Role role, BiConsumer<String, Role> callback) {
         Mat processedFace = preprocessFace(face);
 
         if (!idToNameMap.isEmpty()) {
@@ -66,7 +66,7 @@ class FaceProcessingHelper {
 
                 if (conf < LIMIAR_DUPLICATA) {
                     String existingName = idToNameMap.get(label.get(0));
-                    callback.accept(" Erro: Rosto já registrado como '" + existingName + "'");
+                    callback.accept(" Erro: Rosto já registrado como '" + existingName + "'", null);
                     return;
                 }
             } catch (Exception e) {
@@ -75,7 +75,7 @@ class FaceProcessingHelper {
         }
 
         if (idToEmailMap.containsValue(email)) {
-            callback.accept("Erro: Email já registrado");
+            callback.accept("Erro: Email já registrado", null);
             return;
         }
 
@@ -103,12 +103,12 @@ class FaceProcessingHelper {
         recognitionAttempts.put(personId, 0);
         successfulRecognitions.put(personId, 0);
 
-        callback.accept(" Sucesso: " + personName + " registrado com email " + email + ", nível " + role);
+        callback.accept(" Sucesso: " + personName + " registrado com email " + email + ", nível " + role, role);
     }
 
-    void authenticate(Mat face, Consumer<String> callback) {
+    void authenticate(Mat face, BiConsumer<String, Role> callback) {
         if (idToNameMap.isEmpty()) {
-            callback.accept(" Erro: Nenhum rosto registrado no sistema!");
+            callback.accept(" Erro: Nenhum rosto registrado no sistema!", null);
             return;
         }
 
@@ -122,7 +122,7 @@ class FaceProcessingHelper {
         double conf = confidence.get(0);
 
         if (predictedLabel == -1 || conf > LIMIAR_RECONHECIMENTO || !isConfidenceReliable(conf, predictedLabel)) {
-            callback.accept("Rosto não reconhecido (confiança: " + String.format("%.2f", conf) + ")");
+            callback.accept("Rosto não reconhecido (confiança: " + String.format("%.2f", conf) + ")", null);
         } else {
             recognitionAttempts.put(predictedLabel,
                     recognitionAttempts.getOrDefault(predictedLabel, 0) + 1);
@@ -136,7 +136,7 @@ class FaceProcessingHelper {
             System.out.printf("RECONHECIMENTO - User: %s, Confiança: %.2f", personName, conf);
 
             callback.accept("Autenticado como: " + personName + " (" + email + ") - Nível: " + role +
-                    " - Confiança: " + String.format("%.2f", conf));
+                    " - Confiança: " + String.format("%.2f", conf), role);
         }
     }
 
@@ -285,12 +285,15 @@ class FaceProcessingHelper {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] parts = line.split(";");
-                if (parts.length >= 3) {
+                if (parts.length >= 4) { 
                     int id = Integer.parseInt(parts[0]);
                     String name = parts[1];
                     String email = parts[2];
+                    Role role = Role.valueOf(parts[3]); 
+                    
                     idToNameMap.put(id, name);
                     idToEmailMap.put(id, email);
+                    idToRoleMap.put(id, role);
 
                     if (id >= nextId) nextId = id + 1;
 
