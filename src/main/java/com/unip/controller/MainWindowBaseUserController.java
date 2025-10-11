@@ -5,8 +5,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.ResourceBundle;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
+import com.unip.config.SpringContext;
 import com.unip.model.RuralProperty;
 import com.unip.service.RuralPropertyService;
 
@@ -23,13 +22,10 @@ import javafx.scene.layout.VBox;
 
 public class MainWindowBaseUserController implements Initializable{
     
-    @Autowired
-    private RuralPropertyService propertyService;
-
-
+    private RuralPropertyService propertyService; 
     private ObservableList<RuralProperty> propertiesList;
 
-     @FXML
+    @FXML
     private Button properties_btn;
 
     @FXML
@@ -47,38 +43,35 @@ public class MainWindowBaseUserController implements Initializable{
     @FXML
     private TableColumn<RuralProperty, String> tbl_col_owner;
 
-
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-
+        this.propertyService = SpringContext.getBean(RuralPropertyService.class);
         
-         loadPropertiesData();
+        setupPropertiesTable(); 
+        loadPropertiesData();
     }
 
-     public void refreshPropertiesTables() {
+    public void refreshPropertiesTables() {
         loadPropertiesData();
+    }
 
-     }
+    private void loadPropertiesData() {
+        if (propertyService != null) {
+            List<RuralProperty> properties = propertyService.listarTodasPropriedades();
+            propertiesList = FXCollections.observableArrayList(properties);
+            properties_table.setItems(propertiesList);
+        } else {
+            System.err.println("ERRO: propertyService é null!");
+        }
+    }
 
-     private void loadPropertiesData() {
-
-        List<RuralProperty> properties = propertyService.listarTodasPropriedades();
-        
-
-        propertiesList = FXCollections.observableArrayList(properties);
-        
-
-         properties_table.setItems(propertiesList);
-     }
-
-     private void setupPropertiesTable() {
-         tbl_col_owner.setCellValueFactory(new PropertyValueFactory<>("owner"));
-         tbl_col_fisc_date.setCellValueFactory(new PropertyValueFactory<>("date"));
-
-     }
+    private void setupPropertiesTable() {
+        tbl_col_owner.setCellValueFactory(new PropertyValueFactory<>("owner"));
+        tbl_col_fisc_date.setCellValueFactory(new PropertyValueFactory<>("inspectionDate")); 
+    }
 
     public void setPropertyService(RuralPropertyService propertyService) {
-    this.propertyService = propertyService;
-    loadPropertiesData(); 
+        this.propertyService = propertyService;
+        loadPropertiesData(); 
     }
 }

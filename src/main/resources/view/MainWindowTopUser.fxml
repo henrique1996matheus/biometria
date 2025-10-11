@@ -48,7 +48,7 @@
                   <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
                </StackPane.margin>
             </VBox>
-            <VBox fx:id="users_info" prefHeight="200.0" prefWidth="100.0" style="-fx-background-color: blue;" visible="false">
+            <VBox fx:id="users_info" prefHeight="200.0" prefWidth="100.0">
                <children>
                   <TableView fx:id="users_table" prefHeight="517.0" prefWidth="900.0">
                      <columns>
@@ -57,6 +57,9 @@
                      <TableColumn fx:id="tb_col_level_access" prefWidth="218.0" text="Level Access" />
                      <TableColumn fx:id="tb_col_acoes" text="Ações" />
                      </columns>
+                     <VBox.margin>
+                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                     </VBox.margin>
                   </TableView>
                </children>
             </VBox>

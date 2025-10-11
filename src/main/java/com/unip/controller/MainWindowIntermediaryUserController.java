@@ -9,6 +9,7 @@ import java.util.ResourceBundle;
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.unip.config.SpringContext;
 import com.unip.model.Role;
 import com.unip.model.RuralProperty;
 import com.unip.service.CameraService;
@@ -40,9 +41,7 @@ import javafx.scene.layout.VBox;
 
 public class MainWindowIntermediaryUserController implements Initializable{
     
-    @Autowired
-    private RuralPropertyService propertyService;
-
+    private RuralPropertyService propertyService; 
     private ObservableList<RuralProperty> propertiesList;
 
     @Autowired
@@ -92,7 +91,6 @@ public class MainWindowIntermediaryUserController implements Initializable{
 
     @FXML
     void open_add_user_pane(MouseEvent event) {
-        
         medium_acess_user_prop.setVisible(false);
         medium_acess_add_users.setVisible(true);
     }
@@ -103,7 +101,6 @@ public class MainWindowIntermediaryUserController implements Initializable{
         medium_acess_user_prop.setVisible(true);
 
         loadPropertiesData();
-
         stopCamera();
     }
     
@@ -126,7 +123,6 @@ public class MainWindowIntermediaryUserController implements Initializable{
 
     @FXML
     void register_user(MouseEvent event) {
-
         try {
             Mat frame = cameraService.captureFrame();
             if (frame != null) {
@@ -142,35 +138,32 @@ public class MainWindowIntermediaryUserController implements Initializable{
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-
         medium_acess_add_users.setVisible(false);
         medium_acess_user_prop.setVisible(true);
 
-         loadPropertiesData();
-
+        this.propertyService = SpringContext.getBean(RuralPropertyService.class);
+        
+        setupPropertiesTable(); 
+        loadPropertiesData();
     }
 
-     public void refreshPropertiesTables() {
-         loadPropertiesData();
-
-     }
+    public void refreshPropertiesTables() {
+        loadPropertiesData();
+    }
 
     private void loadPropertiesData() {
-        
-        List<RuralProperty> properties = propertyService.listarTodasPropriedades();
-        
-    
-        propertiesList = FXCollections.observableArrayList(properties);
-    
-    
-        properties_table.setItems(propertiesList);
+        if (propertyService != null) {
+            List<RuralProperty> properties = propertyService.listarTodasPropriedades();
+            propertiesList = FXCollections.observableArrayList(properties);
+            properties_table.setItems(propertiesList);
+        } else {
+            System.err.println("ERRO: propertyService é null!");
+        }
     }
 
     private void setupPropertiesTable() {
-
         tbl_col_owner.setCellValueFactory(new PropertyValueFactory<>("owner"));
-        tbl_col_fisc_date.setCellValueFactory(new PropertyValueFactory<>("date"));
-        
+        tbl_col_fisc_date.setCellValueFactory(new PropertyValueFactory<>("inspectionDate")); 
     }
 
     private void startCamera() {
@@ -224,7 +217,6 @@ public class MainWindowIntermediaryUserController implements Initializable{
         TextField emailField = new TextField();
         emailField.setPromptText("email@exemplo.com");
 
-        // ComboBox para selecionar o nível de acesso
         ComboBox<Role> roleComboBox = new ComboBox<>();
         roleComboBox.getItems().addAll(Role.LEVEL_1, Role.LEVEL_2);
         roleComboBox.setValue(Role.LEVEL_1);
@@ -264,10 +256,8 @@ public class MainWindowIntermediaryUserController implements Initializable{
                 return;
             }
 
-            // Registrar o usuário
             faceService.register(frame, name, email, role, (message, registeredRole) -> {
                 showMessage(message);
-                // Atualiza a tabela de usuários após o registro
                 if (registeredRole != null) {
                 }
             });
@@ -309,5 +299,4 @@ public class MainWindowIntermediaryUserController implements Initializable{
         this.propertyService = propertyService;
         loadPropertiesData(); 
     }
-
 }
