@@ -26,6 +26,7 @@ public class MainWindowBaseUserController implements Initializable{
     @Autowired
     private RuralPropertyService propertyService;
 
+
     private ObservableList<RuralProperty> propertiesList;
 
      @FXML
@@ -75,4 +76,9 @@ public class MainWindowBaseUserController implements Initializable{
          tbl_col_fisc_date.setCellValueFactory(new PropertyValueFactory<>("date"));
 
      }
+
+    public void setPropertyService(RuralPropertyService propertyService) {
+    this.propertyService = propertyService;
+    loadPropertiesData(); 
+    }
 }

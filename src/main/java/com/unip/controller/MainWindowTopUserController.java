@@ -487,7 +487,6 @@ public class MainWindowTopUserController implements Initializable{
         TextField emailField = new TextField();
         emailField.setPromptText("email@exemplo.com");
 
-        // ComboBox para selecionar o nível de acesso
         ComboBox<Role> roleComboBox = new ComboBox<>();
         roleComboBox.getItems().addAll(Role.LEVEL_1, Role.LEVEL_2);
         roleComboBox.setValue(Role.LEVEL_1);
@@ -527,10 +526,8 @@ public class MainWindowTopUserController implements Initializable{
                 return;
             }
 
-            // Registrar o usuário
             faceService.register(frame, name, email, role, (message, registeredRole) -> {
                 showMessage(message);
-                // Atualiza a tabela de usuários após o registro
                 if (registeredRole != null) {
                     refreshUsersTables();
                 }
@@ -567,5 +564,10 @@ public class MainWindowTopUserController implements Initializable{
 
     public void shutdown() {
         stopCamera();
+    }
+
+    public void setPropertyService(RuralPropertyService propertyService) {
+        this.propertyService = propertyService;
+        loadPropertiesData(); 
     }
 }

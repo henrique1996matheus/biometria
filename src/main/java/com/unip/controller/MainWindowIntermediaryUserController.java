@@ -305,4 +305,9 @@ public class MainWindowIntermediaryUserController implements Initializable{
         stopCamera();
     }
 
+    public void setPropertyService(RuralPropertyService propertyService) {
+        this.propertyService = propertyService;
+        loadPropertiesData(); 
+    }
+
 }
