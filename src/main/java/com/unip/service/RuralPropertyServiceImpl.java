@@ -25,13 +25,31 @@ public class RuralPropertyServiceImpl implements RuralPropertyService {
     }
 
     @Override
-    public void deletarPropriedade(int id) {
+    public void deletarPropriedade(Long id) {
         repository.deleteById(id);
     }
 
     @Override
-    public void updateDate(int id, LocalDate date) {
+    public void updateDate(Long id, LocalDate date) {
         repository.updateInspectionDate(id, date);
     }
+
+    @Override
+    public RuralProperty buscarPorId(Long id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+    }
+
+    @Override
+    public RuralProperty atualizarPropriedade(RuralProperty property) {
+
+        RuralProperty existingProperty = buscarPorId(property.getId());
+        
+        existingProperty.setOwner(property.getOwner());
+        existingProperty.setInspectionDate(property.getInspectionDate());
+        
+        return repository.save(existingProperty);
+    }
+    
 
 }

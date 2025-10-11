@@ -1,9 +1,13 @@
 package com.unip.controller;
 
-import java.awt.event.MouseEvent;
 import java.net.URL;
 import java.time.LocalDate;
 import java.util.ResourceBundle;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.unip.model.RuralProperty;
+import com.unip.service.RuralPropertyService;
 
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -14,6 +18,12 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
 public class FormPropertyController implements Initializable{
+    
+    @Autowired
+    private RuralPropertyService propertyService;
+    
+    private RuralProperty propertyToEdit;
+    private MainWindowTopUserController mainController;
     
     @FXML
     private Button btn_cancel;
@@ -31,22 +41,21 @@ public class FormPropertyController implements Initializable{
     private TextField txtfield_owner;
 
     @FXML
-    void cancel_edition(MouseEvent event) {
+    void cancel_edition() {
         closeWindow();
     }
 
     @FXML
-    void save_new_date(MouseEvent event) {
+    void save_new_date() {
         saveProperty();
     }
     
-     @Override
+    @Override
     public void initialize(URL url, ResourceBundle rb) {
         configureFields();
     }
 
     private void configureFields() {
-
         txtfield_address.setEditable(false);
         txtfield_owner.setEditable(false);
         
@@ -56,7 +65,7 @@ public class FormPropertyController implements Initializable{
         dtpicker_fiscalization.setStyle("-fx-background-color: white;");
     }
 
-    public void setPropertyToEdit(Property property) {
+    public void setPropertyToEdit(RuralProperty property) {
         this.propertyToEdit = property;
         loadPropertyData();
     }
@@ -67,16 +76,11 @@ public class FormPropertyController implements Initializable{
 
     private void loadPropertyData() {
         if (propertyToEdit != null) {
-            txtfield_address.setText(propertyToEdit.getAddress());
+
             txtfield_owner.setText(propertyToEdit.getOwner());
             
-            if (propertyToEdit.getDate() != null && !propertyToEdit.getDate().isEmpty()) {
-                try {
-                    LocalDate fiscalizationDate = LocalDate.parse(propertyToEdit.getDate());
-                    dtpicker_fiscalization.setValue(fiscalizationDate);
-                } catch (Exception e) {
-                    dtpicker_fiscalization.setValue(null);
-                }
+            if (propertyToEdit.getInspectionDate() != null) {
+                dtpicker_fiscalization.setValue(propertyToEdit.getInspectionDate());
             }
         }
     }
@@ -94,9 +98,11 @@ public class FormPropertyController implements Initializable{
                 return;
             }
 
-            propertyToEdit.setDate(newDate.toString()); 
+            // Atualiza a data diretamente no objeto
+            propertyToEdit.setInspectionDate(newDate);
             
-            propertyService.update(propertyToEdit);
+            // Salva no banco de dados
+            propertyService.atualizarPropriedade(propertyToEdit);
 
             if (mainController != null) {
                 mainController.refreshPropertiesTables();

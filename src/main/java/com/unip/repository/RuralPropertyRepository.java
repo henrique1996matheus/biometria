@@ -14,10 +14,10 @@ import jakarta.transaction.Transactional;
 
 @Repository
 public interface RuralPropertyRepository extends JpaRepository<RuralProperty, Long> {
-    void deleteById(int id);
+    void deleteById(Long id);
 
     @Modifying
     @Transactional
     @Query("UPDATE RuralProperty r SET r.inspectionDate = :date WHERE r.id = :id")
-    void updateInspectionDate(@Param("id") int id, @Param("date") LocalDate date);
+    void updateInspectionDate(@Param("id") Long id, @Param("date") LocalDate date);
 }

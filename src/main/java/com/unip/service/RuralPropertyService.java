@@ -10,7 +10,11 @@ public interface RuralPropertyService {
 
     List<RuralProperty> listarTodasPropriedades();
 
-    void deletarPropriedade(int id);
+    RuralProperty buscarPorId (Long id);
 
-    void updateDate(int id, LocalDate data);
+    void deletarPropriedade(Long id);
+
+    void updateDate(Long id, LocalDate data);
+
+    RuralProperty atualizarPropriedade(RuralProperty property);
 }
