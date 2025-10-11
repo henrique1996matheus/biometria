@@ -1,6 +1,7 @@
 package com.unip.controller;
 
 import com.unip.model.Role;
+
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -20,8 +21,13 @@ import com.unip.service.FaceService;
 
 import java.util.Optional;
 
+import com.unip.service.RuralPropertyService;
+
 @Component
 public class UIController {
+
+    @Autowired
+    private RuralPropertyService propertyService; // Já deve estar injetado aqui
 
     @FXML
     private RadioButton cameraToggle;
@@ -239,22 +245,31 @@ public class UIController {
                     title = "Sistema - Nível 1";
             }
             
-            // Fecha a janela atual
             Stage currentStage = (Stage) cameraView.getScene().getWindow();
             currentStage.close();
             
-            // Abre a nova janela
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlFile));
+            Parent root = loader.load();
+            
+            Object controller = loader.getController();
+            if (controller instanceof MainWindowBaseUserController) {
+                ((MainWindowBaseUserController) controller).setPropertyService(propertyService);
+            } else if (controller instanceof MainWindowIntermediaryUserController) {
+                ((MainWindowIntermediaryUserController) controller).setPropertyService(propertyService);
+            } else if (controller instanceof MainWindowTopUserController) {
+                ((MainWindowTopUserController) controller).setPropertyService(propertyService);
+            }
+            
             Stage newStage = new Stage();
-            Parent root = FXMLLoader.load(getClass().getResource(fxmlFile));
             newStage.setTitle(title);
             newStage.setScene(new Scene(root));
             newStage.show();
             
-            } catch (Exception e) {
-                e.printStackTrace();
-                showMessage("Erro ao abrir a janela: " + e.getMessage());
-            }
-        });
-    }
+        } catch (Exception e) {
+            e.printStackTrace();
+            showMessage("Erro ao abrir a janela: " + e.getMessage());
+        }
+    });
+}
 
 }
