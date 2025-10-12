@@ -4,22 +4,20 @@ import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.ResourceBundle;
 import java.util.Optional;
+import java.util.ResourceBundle;
 
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
-import com.unip.config.SpringContext;
 import com.unip.model.Role;
 import com.unip.model.RuralProperty;
 import com.unip.model.User;
-import com.unip.service.UserService;
-
 import com.unip.service.CameraService;
 import com.unip.service.FaceService;
 import com.unip.service.RuralPropertyService;
+import com.unip.service.UserService;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -37,12 +35,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
@@ -50,17 +43,22 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.control.TableCell;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
 @Controller
-public class MainWindowTopUserController implements Initializable{
+public class MainWindowTopUserController implements Initializable {
 
     @Autowired
     private CameraService cameraService;
 
     @Autowired
     private FaceService faceService;
-    
+
     @Autowired
     private UserService userService;
 
@@ -68,8 +66,8 @@ public class MainWindowTopUserController implements Initializable{
 
     private volatile boolean markFaces = false;
     private volatile boolean cameraActive = false;
-    
-    private RuralPropertyService propertyService; 
+
+    private RuralPropertyService propertyService;
 
     private ObservableList<RuralProperty> propertiesList;
 
@@ -197,13 +195,13 @@ public class MainWindowTopUserController implements Initializable{
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        
+
         add_users.setVisible(false);
         properties_infos.setVisible(true);
         users_info.setVisible(false);
 
         setupUsersTable();
-        setupPropertiesTable(); 
+        setupPropertiesTable();
         loadUsersData();
         loadPropertiesData();
 
@@ -211,7 +209,6 @@ public class MainWindowTopUserController implements Initializable{
         radio_mark_face.setVisible(false);
     }
 
-    
     private void setupUsersTable() {
 
         tb_col_username.setCellValueFactory(new PropertyValueFactory<>("name"));
@@ -219,14 +216,14 @@ public class MainWindowTopUserController implements Initializable{
         tb_col_level_access.setCellValueFactory(new PropertyValueFactory<>("role"));
 
         setupActionsColumn();
-        
+
     }
-    
+
     private void setupPropertiesTable() {
-        
+
         tbl_col_owner.setCellValueFactory(new PropertyValueFactory<>("owner"));
-        tbl_col_fisc_date.setCellValueFactory(new PropertyValueFactory<>("inspectionDate")); 
-        
+        tbl_col_fisc_date.setCellValueFactory(new PropertyValueFactory<>("inspectionDate"));
+
         setupPropertiesActionsColumn();
     }
 
@@ -240,10 +237,10 @@ public class MainWindowTopUserController implements Initializable{
 
                 btnEditar.setStyle("-fx-background-color: transparent; -fx-font-size: 14px; -fx-cursor: hand;");
                 btnExcluir.setStyle("-fx-background-color: transparent; -fx-font-size: 14px; -fx-cursor: hand;");
-                
+
                 btnEditar.setTooltip(new Tooltip("Editar propriedade"));
                 btnExcluir.setTooltip(new Tooltip("Excluir propriedade"));
-                
+
                 botoes.setSpacing(8);
                 botoes.setAlignment(Pos.CENTER);
 
@@ -272,8 +269,8 @@ public class MainWindowTopUserController implements Initializable{
 
     private void editarProperty(RuralProperty property) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/FormProperty.fxml")); 
-            
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/FormProperty.fxml"));
+
             Parent root = loader.load();
 
             FormPropertyController formController = loader.getController();
@@ -293,7 +290,6 @@ public class MainWindowTopUserController implements Initializable{
         }
     }
 
-
     private void excluirProperty(RuralProperty property) {
         Alert confirmacao = new Alert(Alert.AlertType.CONFIRMATION);
         confirmacao.setTitle("Confirmação de Exclusão");
@@ -304,11 +300,11 @@ public class MainWindowTopUserController implements Initializable{
         if (resultado.isPresent() && resultado.get() == ButtonType.OK) {
             try {
                 propertyService.deletarPropriedade(property.getId());
-                
+
                 propertiesList.remove(property);
-                
+
                 showMessage("Propriedade excluída com sucesso!");
-                
+
             } catch (Exception e) {
                 e.printStackTrace();
                 showMessage("Erro ao excluir propriedade: " + e.getMessage());
@@ -325,10 +321,10 @@ public class MainWindowTopUserController implements Initializable{
             {
                 btnEditar.setStyle("-fx-background-color: transparent; -fx-font-size: 14px; -fx-cursor: hand;");
                 btnExcluir.setStyle("-fx-background-color: transparent; -fx-font-size: 14px; -fx-cursor: hand;");
-                
+
                 btnEditar.setTooltip(new Tooltip("Editar usuário"));
                 btnExcluir.setTooltip(new Tooltip("Excluir usuário"));
-                
+
                 botoes.setSpacing(8);
                 botoes.setAlignment(Pos.CENTER);
 
@@ -366,11 +362,11 @@ public class MainWindowTopUserController implements Initializable{
             try {
 
                 userService.delete(user.getId());
-                
+
                 usersList.remove(user);
-                
+
                 showMessage("Usuário excluído com sucesso!");
-                
+
             } catch (Exception e) {
                 e.printStackTrace();
                 showMessage("Erro ao excluir usuário: " + e.getMessage());
@@ -379,59 +375,54 @@ public class MainWindowTopUserController implements Initializable{
     }
 
     private void editarUsuario(User user) {
-    try {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/FormUser.fxml"));
-        
-        Parent root = loader.load();
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/FormUser.fxml"));
 
-        FormUserController formController = loader.getController();
-        formController.setUserToEdit(user);
-        formController.setMainController(this);
+            Parent root = loader.load();
 
-        Stage stage = new Stage();
-        stage.setTitle("Editar Usuário - " + user.getName());
-        stage.setScene(new Scene(root));
-        stage.initModality(Modality.APPLICATION_MODAL);
-        stage.setResizable(false);
-        stage.showAndWait();
+            FormUserController formController = loader.getController();
+            formController.setUserToEdit(user);
+            formController.setMainController(this);
 
-    } catch (IOException e) {
-        e.printStackTrace();
-        showMessage("Erro ao abrir formulário de edição: " + e.getMessage());
+            Stage stage = new Stage();
+            stage.setTitle("Editar Usuário - " + user.getName());
+            stage.setScene(new Scene(root));
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setResizable(false);
+            stage.showAndWait();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            showMessage("Erro ao abrir formulário de edição: " + e.getMessage());
+        }
     }
-}
-
 
     private void loadUsersData() {
-        
+
         List<User> users = userService.findAll();
-        
-        
+
         usersList = FXCollections.observableArrayList(users);
-        
-        
+
         users_table.setItems(usersList);
     }
-    
+
     private void loadPropertiesData() {
-        if (propertyService != null) { 
+        if (propertyService != null) {
             List<RuralProperty> properties = propertyService.listarTodasPropriedades();
-            
-        
+
             propertiesList = FXCollections.observableArrayList(properties);
-        
-        
+
             properties_table.setItems(propertiesList);
         } else {
             System.err.println("ERRO: propertyService é null!");
         }
     }
-    
+
     public void refreshUsersTables() {
         loadUsersData();
-        
+
     }
-    
+
     public void refreshPropertiesTables() {
         loadPropertiesData();
     }
@@ -454,24 +445,8 @@ public class MainWindowTopUserController implements Initializable{
         }
     }
 
-    private static class UserData {
-        private final String name;
-        private final String email;
-        private final Role role;
-
-        public UserData(String name, String email, Role role) {
-            this.name = name;
-            this.email = email;
-            this.role = role;
-        }
-
-        public String getName() { return name; }
-        public String getEmail() { return email; }
-        public Role getRole() { return role; }
-    }
-
     private void showRegistrationDialog(Mat frame) {
-        Dialog<UserData> dialog = new Dialog<>();
+        Dialog<User> dialog = new Dialog<>();
         dialog.setTitle("Registrar Novo Usuário");
         dialog.setHeaderText("Digite os dados do usuário:");
 
@@ -488,7 +463,7 @@ public class MainWindowTopUserController implements Initializable{
         emailField.setPromptText("email@exemplo.com");
 
         ComboBox<Role> roleComboBox = new ComboBox<>();
-        roleComboBox.getItems().addAll(Role.LEVEL_1, Role.LEVEL_2); 
+        roleComboBox.getItems().addAll(Role.LEVEL_1, Role.LEVEL_2);
         roleComboBox.setValue(Role.LEVEL_1);
 
         grid.add(new Label("Nome:"), 0, 0);
@@ -504,17 +479,17 @@ public class MainWindowTopUserController implements Initializable{
 
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == registerButtonType) {
-                return new UserData(nameField.getText(), emailField.getText(), roleComboBox.getValue());
+                return User.builder().name(nameField.getText()).email(emailField.getText())
+                        .role(roleComboBox.getValue()).build();
             }
             return null;
         });
 
-        Optional<UserData> result = dialog.showAndWait();
+        Optional<User> result = dialog.showAndWait();
 
-        result.ifPresent(userData -> {
-            String name = userData.getName();
-            String email = userData.getEmail();
-            Role role = userData.getRole();
+        result.ifPresent(user -> {
+            String name = user.getName();
+            String email = user.getEmail();
 
             if (name == null || name.trim().isEmpty()) {
                 showMessage("Erro: Nome é obrigatório!");
@@ -526,7 +501,7 @@ public class MainWindowTopUserController implements Initializable{
                 return;
             }
 
-            faceService.register(frame, name, email, role, (message, registeredRole) -> {
+            faceService.register(frame, user, (message, registeredRole) -> {
                 showMessage(message);
                 if (registeredRole != null) {
                     refreshUsersTables();
@@ -545,7 +520,8 @@ public class MainWindowTopUserController implements Initializable{
 
             javafx.scene.image.WritableImage image = new javafx.scene.image.WritableImage(width, height);
             javafx.scene.image.PixelWriter pw = image.getPixelWriter();
-            pw.setPixels(0, 0, width, height, javafx.scene.image.PixelFormat.getByteRgbInstance(), buffer, 0, width * channels);
+            pw.setPixels(0, 0, width, height, javafx.scene.image.PixelFormat.getByteRgbInstance(), buffer, 0,
+                    width * channels);
             return image;
         } catch (Exception e) {
             return null;
@@ -568,13 +544,13 @@ public class MainWindowTopUserController implements Initializable{
 
     public void setPropertyService(RuralPropertyService propertyService) {
         this.propertyService = propertyService;
-        loadPropertiesData(); 
+        loadPropertiesData();
     }
 
     public void setUserService(UserService userService) {
         this.userService = userService;
         if (users_table != null) {
             loadUsersData();
+        }
     }
-}
 }

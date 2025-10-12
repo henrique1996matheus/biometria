@@ -18,10 +18,15 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User saveUser(User user) {
-        if (user.getFaceId() != null && userRepository.existsByFaceId(user.getFaceId())) {
-            throw new RuntimeException("Rosto já cadastrado no sistema");
+        if (findByEmail(user.getEmail()).isPresent()) {
+            throw new RuntimeException("Email já cadastrado no sistema");
         }
-        return userRepository.save(user);
+
+        try {
+            return userRepository.save(user);
+        } catch (Exception e) {
+            throw e;
+        }
     }
 
     @Override
@@ -53,19 +58,19 @@ public class UserServiceImpl implements UserService {
     @Override
     public User update(User user) {
         User existingUser = userRepository.findById(user.getId())
-            .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
-        
-        if (user.getFaceId() != null && 
-            !user.getFaceId().equals(existingUser.getFaceId()) &&
-            userRepository.existsByFaceId(user.getFaceId())) {
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        if (user.getFaceId() != null &&
+                !user.getFaceId().equals(existingUser.getFaceId()) &&
+                userRepository.existsByFaceId(user.getFaceId())) {
             throw new RuntimeException("Rosto já cadastrado no sistema");
         }
-        
+
         existingUser.setName(user.getName());
         existingUser.setEmail(user.getEmail());
         existingUser.setRole(user.getRole());
         existingUser.setFaceId(user.getFaceId());
-        
+
         return userRepository.save(existingUser);
     }
 

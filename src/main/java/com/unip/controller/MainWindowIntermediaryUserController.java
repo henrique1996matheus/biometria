@@ -13,10 +13,10 @@ import org.springframework.stereotype.Component;
 import com.unip.config.SpringContext;
 import com.unip.model.Role;
 import com.unip.model.RuralProperty;
+import com.unip.model.User;
 import com.unip.service.CameraService;
 import com.unip.service.FaceService;
 import com.unip.service.RuralPropertyService;
-import com.unip.service.UserService;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -41,9 +41,9 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 @Component
-public class MainWindowIntermediaryUserController implements Initializable{
-    
-    private RuralPropertyService propertyService; 
+public class MainWindowIntermediaryUserController implements Initializable {
+
+    private RuralPropertyService propertyService;
     private ObservableList<RuralProperty> propertiesList;
 
     @Autowired
@@ -105,7 +105,7 @@ public class MainWindowIntermediaryUserController implements Initializable{
         loadPropertiesData();
         stopCamera();
     }
-    
+
     @FXML
     void toggle_camera(MouseEvent event) {
         if (cameraActive) {
@@ -144,8 +144,8 @@ public class MainWindowIntermediaryUserController implements Initializable{
         medium_acess_user_prop.setVisible(true);
 
         this.propertyService = SpringContext.getBean(RuralPropertyService.class);
-        
-        setupPropertiesTable(); 
+
+        setupPropertiesTable();
         loadPropertiesData();
     }
 
@@ -165,7 +165,7 @@ public class MainWindowIntermediaryUserController implements Initializable{
 
     private void setupPropertiesTable() {
         tbl_col_owner.setCellValueFactory(new PropertyValueFactory<>("owner"));
-        tbl_col_fisc_date.setCellValueFactory(new PropertyValueFactory<>("inspectionDate")); 
+        tbl_col_fisc_date.setCellValueFactory(new PropertyValueFactory<>("inspectionDate"));
     }
 
     private void startCamera() {
@@ -186,24 +186,8 @@ public class MainWindowIntermediaryUserController implements Initializable{
         }
     }
 
-    private static class UserData {
-        private final String name;
-        private final String email;
-        private final Role role;
-
-        public UserData(String name, String email, Role role) {
-            this.name = name;
-            this.email = email;
-            this.role = role;
-        }
-
-        public String getName() { return name; }
-        public String getEmail() { return email; }
-        public Role getRole() { return role; }
-    }
-
     private void showRegistrationDialog(Mat frame) {
-        Dialog<UserData> dialog = new Dialog<>();
+        Dialog<User> dialog = new Dialog<>();
         dialog.setTitle("Registrar Novo Usuário");
         dialog.setHeaderText("Digite os dados do usuário:");
 
@@ -236,17 +220,18 @@ public class MainWindowIntermediaryUserController implements Initializable{
 
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == registerButtonType) {
-                return new UserData(nameField.getText(), emailField.getText(), roleComboBox.getValue());
+                return User.builder().name(nameField.getText()).email(emailField.getText())
+                        .role(roleComboBox.getValue()).build();
             }
+
             return null;
         });
 
-        Optional<UserData> result = dialog.showAndWait();
+        Optional<User> result = dialog.showAndWait();
 
-        result.ifPresent(userData -> {
-            String name = userData.getName();
-            String email = userData.getEmail();
-            Role role = userData.getRole();
+        result.ifPresent(user -> {
+            String name = user.getName();
+            String email = user.getEmail();
 
             if (name == null || name.trim().isEmpty()) {
                 showMessage("Erro: Nome é obrigatório!");
@@ -258,7 +243,7 @@ public class MainWindowIntermediaryUserController implements Initializable{
                 return;
             }
 
-            faceService.register(frame, name, email, role, (message, registeredRole) -> {
+            faceService.register(frame, user, (message, registeredRole) -> {
                 showMessage(message);
                 if (registeredRole != null) {
                 }
@@ -276,7 +261,8 @@ public class MainWindowIntermediaryUserController implements Initializable{
 
             javafx.scene.image.WritableImage image = new javafx.scene.image.WritableImage(width, height);
             javafx.scene.image.PixelWriter pw = image.getPixelWriter();
-            pw.setPixels(0, 0, width, height, javafx.scene.image.PixelFormat.getByteRgbInstance(), buffer, 0, width * channels);
+            pw.setPixels(0, 0, width, height, javafx.scene.image.PixelFormat.getByteRgbInstance(), buffer, 0,
+                    width * channels);
             return image;
         } catch (Exception e) {
             return null;
@@ -299,6 +285,6 @@ public class MainWindowIntermediaryUserController implements Initializable{
 
     public void setPropertyService(RuralPropertyService propertyService) {
         this.propertyService = propertyService;
-        loadPropertiesData(); 
+        loadPropertiesData();
     }
 }
