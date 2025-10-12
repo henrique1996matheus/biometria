@@ -164,17 +164,12 @@ class FaceProcessingHelper {
             if (drawRects) {
                 for (int i = 0; i < faces.size(); i++) {
                     Rect r = faces.get(i);
-                    // Versão com espessura específica
                     opencv_imgproc.rectangle(frame,
                         new org.bytedeco.opencv.opencv_core.Point(r.x(), r.y()),
                         new org.bytedeco.opencv.opencv_core.Point(r.x() + r.width(), r.y() + r.height()),
                         new org.bytedeco.opencv.opencv_core.Scalar(0, 255, 0, 0), 2, 0, 0
                     );
                 }
-            }
-
-            if (faces.size() > 0) {
-                System.out.println("Faces detectadas: " + faces.size());
             }
 
         } catch (Exception e) {
@@ -350,6 +345,22 @@ class FaceProcessingHelper {
 
             recognitionAttempts.put(user.getId().intValue(), 0);
             successfulRecognitions.put(user.getId().intValue(), 0);
+        }
+    }
+
+    public int countFacesInImage(Mat image) {
+        try {
+            CascadeClassifier classifier = loadCascade("/haarcascade_frontalface_default.xml");
+            Mat gray = new Mat();
+            opencv_imgproc.cvtColor(image, gray, opencv_imgproc.COLOR_BGR2GRAY);
+
+            RectVector faces = new RectVector();
+            classifier.detectMultiScale(gray, faces);
+
+            return (int) faces.size();
+        } catch (Exception e) {
+            System.err.println("Erro ao contar faces: " + e.getMessage());
+            return 0;
         }
     }
 }

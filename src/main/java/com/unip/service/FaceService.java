@@ -49,4 +49,8 @@ public class FaceService {
     public void detectFaces(Mat frame, boolean drawRects) {
         helper.detectFaces(frame, drawRects);
     }
+
+    public int countFacesInImage(Mat image) {
+        return helper.countFacesInImage(image);
+    }
 }
