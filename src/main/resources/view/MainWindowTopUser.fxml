@@ -10,37 +10,62 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
+<?import javafx.scene.layout.Region?>
 
 <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
    prefHeight="550.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/25"
    xmlns:fx="http://javafx.com/fxml/1"
    fx:controller="com.unip.controller.MainWindowTopUserController">
    <children>
-      <HBox alignment="BOTTOM_LEFT" prefHeight="59.0" prefWidth="900.0">
+      <HBox alignment="BOTTOM_LEFT" prefHeight="59.0" prefWidth="900.0" spacing="5.0"
+         style="-fx-padding: 0 15 0 15;">
          <children>
+            <!-- Botões à esquerda -->
             <Button fx:id="properties_btn" mnemonicParsing="false"
-               onMouseClicked="#open_properties_pane" prefHeight="30.0" prefWidth="100.0"
-               style="-fx-background-radius: 0 0 -2 -2;" text="Properties">
+               onMouseClicked="#open_properties_pane" prefHeight="30.0"
+               style="-fx-background-radius: 0 0 -2 -2;" text="Propriedades Rurais">
                <font>
                   <Font size="14.0" />
                </font>
             </Button>
+
             <Button fx:id="users_btn" mnemonicParsing="false" onMouseClicked="#open_users_pane"
-               prefHeight="30.0" prefWidth="100.0" style="-fx-background-radius: 0 0 -2 -2;"
-               text="Users">
+               prefHeight="30.0" style="-fx-background-radius: 0 0 -2 -2;" text="Usuários">
                <font>
                   <Font size="14.0" />
                </font>
             </Button>
+
             <Button fx:id="add_user_btn" mnemonicParsing="false"
-               onMouseClicked="#open_add_users_pane" prefHeight="30.0" prefWidth="100.0"
-               style="-fx-background-radius: 0 0 -2 -2;" text="Add User">
+               onMouseClicked="#open_add_users_pane"
+               prefHeight="30.0" style="-fx-background-radius: 0 0 -2 -2;" text="Cadastrar usuário">
+               <font>
+                  <Font size="14.0" />
+               </font>
+            </Button>
+
+            <Button fx:id="add_property_btn" mnemonicParsing="false"
+               onMouseClicked="#openAddProperty"
+               prefHeight="30.0" style="-fx-background-radius: 0 0 -2 -2;"
+               text="Cadastrar Propriedade">
+               <font>
+                  <Font size="14.0" />
+               </font>
+            </Button>
+
+            <!-- Region que empurra o botão "Sair" para a direita -->
+            <Region HBox.hgrow="ALWAYS" />
+
+            <!-- Botão Sair -->
+            <Button fx:id="logout_btn" mnemonicParsing="false" onMouseClicked="#logout"
+               prefHeight="30.0" style="-fx-background-radius: 0 0 -2 -2;" text="Sair">
                <font>
                   <Font size="14.0" />
                </font>
             </Button>
          </children>
       </HBox>
+
       <StackPane fx:id="stc_pane_pages" prefHeight="521.0" prefWidth="900.0">
          <children>
             <VBox fx:id="properties_infos" prefHeight="200.0" prefWidth="100.0"

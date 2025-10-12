@@ -114,10 +114,12 @@ class FaceProcessingHelper {
                 user.getRole());
     }
 
-    void authenticate(Mat face, BiConsumer<String, Role> callback) {
+    public Boolean authenticate(Mat face, BiConsumer<String, Role> callback) {
+        boolean encontrado = false;
+
         if (idToNameMap.isEmpty()) {
             callback.accept("Erro: Nenhum rosto registrado no sistema!", null);
-            return;
+            return encontrado;
         }
 
         Mat processedFace = preprocessFace(face);
@@ -132,6 +134,8 @@ class FaceProcessingHelper {
         if (predictedLabel == -1 || conf > LIMIAR_RECONHECIMENTO || !isConfidenceReliable(conf, predictedLabel)) {
             callback.accept("Rosto não reconhecido (confiança: " + String.format("%.2f", conf) + ")", null);
         } else {
+            encontrado = true;
+
             recognitionAttempts.put(predictedLabel,
                     recognitionAttempts.getOrDefault(predictedLabel, 0) + 1);
             successfulRecognitions.put(predictedLabel,
@@ -146,6 +150,8 @@ class FaceProcessingHelper {
             callback.accept("Autenticado como: " + personName + " (" + email + ") - Nível: " + role +
                     " - Confiança: " + String.format("%.2f", conf), role);
         }
+
+        return encontrado;
     }
 
     // ==================== MÉTODOS AUXILIARES ====================

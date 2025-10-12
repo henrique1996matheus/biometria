@@ -9,8 +9,10 @@ import java.util.ResourceBundle;
 
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Controller;
 
+import com.unip.config.SpringContext;
 import com.unip.model.Role;
 import com.unip.model.RuralProperty;
 import com.unip.model.User;
@@ -72,7 +74,16 @@ public class MainWindowTopUserController implements Initializable {
     private ObservableList<RuralProperty> propertiesList;
 
     @FXML
+    private Button properties_btn;
+
+    @FXML
+    private Button users_btn;
+
+    @FXML
     private Button add_user_btn;
+
+    @FXML
+    private Button add_property_btn;
 
     @FXML
     private VBox add_users;
@@ -82,9 +93,6 @@ public class MainWindowTopUserController implements Initializable {
 
     @FXML
     private ImageView camera_view;
-
-    @FXML
-    private Button properties_btn;
 
     @FXML
     private VBox properties_infos;
@@ -123,9 +131,6 @@ public class MainWindowTopUserController implements Initializable {
     private TableColumn<RuralProperty, String> tbl_col_owner;
 
     @FXML
-    private Button users_btn;
-
-    @FXML
     private VBox users_info;
 
     @FXML
@@ -136,6 +141,16 @@ public class MainWindowTopUserController implements Initializable {
         add_users.setVisible(true);
         properties_infos.setVisible(false);
         users_info.setVisible(false);
+    }
+
+    @FXML
+    void openAddProperty(MouseEvent event) {
+        editProperty(null, true);
+    }
+
+    @FXML
+    void logout(MouseEvent event) {
+        showMessage("calmae");
     }
 
     @FXML
@@ -229,14 +244,13 @@ public class MainWindowTopUserController implements Initializable {
 
     private void setupPropertiesActionsColumn() {
         tb_col_acoes_properties.setCellFactory(param -> new TableCell<RuralProperty, Void>() {
-            private final Button btnEditar = new Button("✏️");
-            private final Button btnExcluir = new Button("❌");
+            private final Button btnEditar = new Button("Editar");
+            private final Button btnExcluir = new Button("Excluir");
             private final HBox botoes = new HBox(btnEditar, btnExcluir);
 
             {
-
-                btnEditar.setStyle("-fx-background-color: transparent; -fx-font-size: 14px; -fx-cursor: hand;");
-                btnExcluir.setStyle("-fx-background-color: transparent; -fx-font-size: 14px; -fx-cursor: hand;");
+                btnEditar.setStyle("-fx-background-radius: 10; -fx-font-size: 14px; -fx-cursor: hand;");
+                btnExcluir.setStyle("-fx-background-radius: 10; -fx-font-size: 14px; -fx-cursor: hand;");
 
                 btnEditar.setTooltip(new Tooltip("Editar propriedade"));
                 btnExcluir.setTooltip(new Tooltip("Excluir propriedade"));
@@ -246,12 +260,12 @@ public class MainWindowTopUserController implements Initializable {
 
                 btnEditar.setOnAction(event -> {
                     RuralProperty property = getTableView().getItems().get(getIndex());
-                    editarProperty(property);
+                    editProperty(property, false);
                 });
 
                 btnExcluir.setOnAction(event -> {
                     RuralProperty property = getTableView().getItems().get(getIndex());
-                    excluirProperty(property);
+                    deleteProperty(property);
                 });
             }
 
@@ -267,9 +281,13 @@ public class MainWindowTopUserController implements Initializable {
         });
     }
 
-    private void editarProperty(RuralProperty property) {
+    private void editProperty(RuralProperty property, Boolean newProperty) {
         try {
+            String title = newProperty ? "Cadastrar Propriedade" : "Editar Propriedade";
+
+            ApplicationContext context = SpringContext.getApplicationContext();
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/FormProperty.fxml"));
+            loader.setControllerFactory(context::getBean);
 
             Parent root = loader.load();
 
@@ -278,10 +296,10 @@ public class MainWindowTopUserController implements Initializable {
             formController.setMainController(this);
 
             Stage stage = new Stage();
-            stage.setTitle("Editar Propriedade - " + property.getOwner());
+            stage.setTitle(title);
             stage.setScene(new Scene(root));
             stage.initModality(Modality.APPLICATION_MODAL);
-            stage.setResizable(false);
+            stage.setResizable(true);
             stage.showAndWait();
 
         } catch (IOException e) {
@@ -290,7 +308,7 @@ public class MainWindowTopUserController implements Initializable {
         }
     }
 
-    private void excluirProperty(RuralProperty property) {
+    private void deleteProperty(RuralProperty property) {
         Alert confirmacao = new Alert(Alert.AlertType.CONFIRMATION);
         confirmacao.setTitle("Confirmação de Exclusão");
         confirmacao.setHeaderText("Excluir Propriedade");
@@ -314,13 +332,13 @@ public class MainWindowTopUserController implements Initializable {
 
     private void setupActionsColumn() {
         tb_col_acoes.setCellFactory(param -> new TableCell<User, Void>() {
-            private final Button btnEditar = new Button("✏️");
-            private final Button btnExcluir = new Button("❌");
+            private final Button btnEditar = new Button("Editar");
+            private final Button btnExcluir = new Button("Excluir");
             private final HBox botoes = new HBox(btnEditar, btnExcluir);
 
             {
-                btnEditar.setStyle("-fx-background-color: transparent; -fx-font-size: 14px; -fx-cursor: hand;");
-                btnExcluir.setStyle("-fx-background-color: transparent; -fx-font-size: 14px; -fx-cursor: hand;");
+                btnEditar.setStyle("-fx-background-radius: 10; -fx-font-size: 14px; -fx-cursor: hand;");
+                btnExcluir.setStyle("-fx-background-radius: 10; -fx-font-size: 14px; -fx-cursor: hand;");
 
                 btnEditar.setTooltip(new Tooltip("Editar usuário"));
                 btnExcluir.setTooltip(new Tooltip("Excluir usuário"));
@@ -376,7 +394,9 @@ public class MainWindowTopUserController implements Initializable {
 
     private void editarUsuario(User user) {
         try {
+            ApplicationContext context = SpringContext.getApplicationContext();
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/FormUser.fxml"));
+            loader.setControllerFactory(context::getBean);
 
             Parent root = loader.load();
 
@@ -501,12 +521,23 @@ public class MainWindowTopUserController implements Initializable {
                 return;
             }
 
-            faceService.register(frame, user, (message, registeredRole) -> {
-                showMessage(message);
-                if (registeredRole != null) {
-                    refreshUsersTables();
+            try {
+                if (!faceService.authenticate(frame, (message, role) -> {
+                })) {
+                    user = userService.saveUser(user);
+
+                    faceService.register(frame, user, (message, registeredRole) -> {
+                        if (registeredRole != null) {
+                            showMessage(message);
+                            refreshUsersTables();
+                        }
+                    });
+                } else {
+                    showMessage("Rosto já cadastrado no sistema");
                 }
-            });
+            } catch (Exception e) {
+                showMessage("Erro: " + e.getMessage());
+            }
         });
     }
 

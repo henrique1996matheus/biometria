@@ -37,8 +37,8 @@ public class FaceService {
         helper.register(face, user, callback);
     }
 
-    public void authenticate(Mat face, BiConsumer<String, Role> callback) {
-        helper.authenticate(face, callback);
+    public Boolean authenticate(Mat face, BiConsumer<String, Role> callback) {
+        return helper.authenticate(face, callback);
     }
 
     public void loadUsers(List<User> users) {

@@ -70,13 +70,23 @@
       <HBox prefHeight="100.0" prefWidth="200.0">
          <children>
             <Button fx:id="btn_cancel" mnemonicParsing="false" onMouseClicked="#cancel_edition"
+               style="-fx-background-radius: 10; -fx-background-color: #FF7F24; -fx-cursor: hand;"
                prefHeight="45.0" prefWidth="120.0" text="Cancel">
+               <font>
+                  <Font name="Bauhaus 93" size="22.0" />
+               </font>
                <HBox.margin>
                   <Insets left="90.0" right="50.0" />
                </HBox.margin>
             </Button>
+
             <Button fx:id="btn_save" mnemonicParsing="false" onMouseClicked="#save_new_date"
-               prefHeight="45.0" prefWidth="120.0" text="Save" />
+               style="-fx-background-radius: 10; -fx-background-color: #FF7F24; -fx-cursor: hand;"
+               prefHeight="45.0" prefWidth="120.0" text="Save">
+               <font>
+                  <Font name="Bauhaus 93" size="22.0" />
+               </font>
+            </Button>
          </children>
       </HBox>
    </children>

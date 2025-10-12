@@ -69,12 +69,15 @@
       <HBox prefHeight="100.0" prefWidth="200.0">
          <children>
             <Button fx:id="btn_cancel" mnemonicParsing="false" onMouseClicked="#cancel_edition"
+               style="-fx-background-radius: 10; -fx-background-color: #FF7F24; -fx-cursor: hand;"
                prefHeight="45.0" prefWidth="120.0" text="Cancel">
                <HBox.margin>
                   <Insets left="90.0" right="50.0" />
                </HBox.margin>
             </Button>
+
             <Button fx:id="btn_save" mnemonicParsing="false" onMouseClicked="#save_new_access_level"
+               style="-fx-background-radius: 10; -fx-background-color: #FF7F24; -fx-cursor: hand;"
                prefHeight="45.0" prefWidth="120.0" text="Save" />
          </children>
       </HBox>
