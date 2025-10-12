@@ -120,6 +120,16 @@ public class UIController {
     }
 
     private void showRegistrationDialog(Mat frame) {
+        int faceCount = faceService.countFacesInImage(frame);
+        if (faceCount == 0) {
+            showMessage("Erro: Nenhum rosto detectado na imagem. Por favor, posicione-se melhor na câmera.");
+            return;
+        }
+        if (faceCount > 1) {
+            showMessage("Erro: A imagem contém " + faceCount + " rostos. Por favor, tire uma foto com apenas UMA pessoa.");
+            return;
+        }
+
         Dialog<User> dialog = new Dialog<>();
         dialog.setTitle("Registrar Novo Usuário");
         dialog.setHeaderText("Digite os dados do usuário:");
@@ -190,6 +200,10 @@ public class UIController {
             cameraToggle.setText(CAMERA_ON_TEXT);
         } else {
             cameraService.startCamera(frame -> {
+                if (markFaces) {
+                    faceService.detectFaces(frame, true);
+                }
+
                 Platform.runLater(() -> {
                     cameraView.setImage(matToImage(frame));
                 });
