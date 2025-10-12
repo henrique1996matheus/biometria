@@ -9,7 +9,9 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="604.0" prefWidth="500.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.unip.controller.FormPropertyController">
+<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
+   prefHeight="604.0" prefWidth="500.0" xmlns="http://javafx.com/javafx/25"
+   xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.unip.controller.FormUserController">
    <children>
       <HBox prefHeight="114.0" prefWidth="500.0" />
       <HBox prefHeight="100.0" prefWidth="200.0">
@@ -56,7 +58,8 @@
                   <Font size="18.0" />
                </font>
             </Label>
-            <ComboBox fx:id="combobox_level_access" prefHeight="26.0" prefWidth="242.0" promptText="Selecione o nível de acesso" >
+            <ComboBox fx:id="combobox_level_access" prefHeight="26.0" prefWidth="242.0"
+               promptText="Selecione o nível de acesso">
                <HBox.margin>
                   <Insets left="15.0" top="14.0" />
                </HBox.margin>
@@ -65,12 +68,17 @@
       </HBox>
       <HBox prefHeight="100.0" prefWidth="200.0">
          <children>
-            <Button fx:id="btn_cancel" mnemonicParsing="false" onMouseClicked="#cancel_edition" prefHeight="45.0" prefWidth="120.0" text="Cancel">
+            <Button fx:id="btn_cancel" mnemonicParsing="false" onMouseClicked="#cancel_edition"
+               style="-fx-background-radius: 10; -fx-background-color: #FF7F24; -fx-cursor: hand;"
+               prefHeight="45.0" prefWidth="120.0" text="Cancel">
                <HBox.margin>
                   <Insets left="90.0" right="50.0" />
                </HBox.margin>
             </Button>
-            <Button fx:id="btn_save" mnemonicParsing="false" onMouseClicked="#save_new_access_level" prefHeight="45.0" prefWidth="120.0" text="Save" />
+
+            <Button fx:id="btn_save" mnemonicParsing="false" onMouseClicked="#save_new_access_level"
+               style="-fx-background-radius: 10; -fx-background-color: #FF7F24; -fx-cursor: hand;"
+               prefHeight="45.0" prefWidth="120.0" text="Save" />
          </children>
       </HBox>
    </children>

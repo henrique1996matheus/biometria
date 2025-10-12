@@ -1,6 +1,21 @@
 package com.unip.service;
 
-import com.unip.model.Role;
+import static org.bytedeco.opencv.global.opencv_core.CV_32FC1;
+import static org.bytedeco.opencv.global.opencv_core.CV_32SC1;
+import static org.bytedeco.opencv.global.opencv_imgproc.COLOR_BGR2GRAY;
+import static org.bytedeco.opencv.global.opencv_imgproc.GaussianBlur;
+import static org.bytedeco.opencv.global.opencv_imgproc.cvtColor;
+import static org.bytedeco.opencv.global.opencv_imgproc.equalizeHist;
+import static org.bytedeco.opencv.global.opencv_imgproc.resize;
+import static org.bytedeco.opencv.global.opencv_imgproc.warpAffine;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.function.BiConsumer;
+
 import org.bytedeco.javacpp.DoublePointer;
 import org.bytedeco.javacpp.FloatPointer;
 import org.bytedeco.javacpp.IntPointer;
@@ -10,17 +25,11 @@ import org.bytedeco.opencv.opencv_core.MatVector;
 import org.bytedeco.opencv.opencv_core.Size;
 import org.bytedeco.opencv.opencv_face.FaceRecognizer;
 
-import java.io.*;
-import java.util.*;
-import java.util.function.BiConsumer;
-
-import static org.bytedeco.opencv.global.opencv_core.CV_32FC1;
-import static org.bytedeco.opencv.global.opencv_core.CV_32SC1;
-import static org.bytedeco.opencv.global.opencv_imgproc.*;
+import com.unip.model.Role;
+import com.unip.model.User;
 
 class FaceProcessingHelper {
     private final String FACES_DIR;
-    private final String LABELS_FILE;
     private final FaceRecognizer faceRecognizer;
     private final Map<Integer, String> idToNameMap;
     private final Map<Integer, String> idToEmailMap;
@@ -32,18 +41,15 @@ class FaceProcessingHelper {
     private static final double LIMIAR_RECONHECIMENTO = 55.0;
     private static final int MIN_IMAGES_PER_USER = 3;
 
-    private int nextId = 0;
-
-    FaceProcessingHelper(String facesDir, String labelsFile,
-                         FaceRecognizer faceRecognizer,
-                         Map<Integer, String> idToNameMap,
-                         Map<Integer, String> idToEmailMap,
-                         Map<Integer, Role> idToRoleMap,
-                         Map<Integer, Integer> recognitionAttempts,
-                         Map<Integer, Integer> successfulRecognitions) {
+    FaceProcessingHelper(String facesDir,
+            FaceRecognizer faceRecognizer,
+            Map<Integer, String> idToNameMap,
+            Map<Integer, String> idToEmailMap,
+            Map<Integer, Role> idToRoleMap,
+            Map<Integer, Integer> recognitionAttempts,
+            Map<Integer, Integer> successfulRecognitions) {
 
         this.FACES_DIR = facesDir;
-        this.LABELS_FILE = labelsFile;
         this.faceRecognizer = faceRecognizer;
         this.idToNameMap = idToNameMap;
         this.idToEmailMap = idToEmailMap;
@@ -52,7 +58,7 @@ class FaceProcessingHelper {
         this.successfulRecognitions = successfulRecognitions;
     }
 
-    void register(Mat face, String personName, String email, Role role, BiConsumer<String, Role> callback) {
+    void register(Mat face, User user, BiConsumer<String, Role> callback) {
         Mat processedFace = preprocessFace(face);
 
         if (!idToNameMap.isEmpty()) {
@@ -74,15 +80,16 @@ class FaceProcessingHelper {
             }
         }
 
-        if (idToEmailMap.containsValue(email)) {
+        if (idToEmailMap.containsValue(user.getEmail())) {
             callback.accept("Erro: Email já registrado", null);
             return;
         }
 
-        int personId = nextId++;
-        idToNameMap.put(personId, personName);
-        idToEmailMap.put(personId, email);
-        idToRoleMap.put(personId, role);
+        int personId = user.getId().intValue();
+
+        idToNameMap.put(personId, user.getName());
+        idToEmailMap.put(personId, user.getEmail());
+        idToRoleMap.put(personId, user.getRole());
 
         File personDir = new File(FACES_DIR, String.valueOf(personId));
         personDir.mkdirs();
@@ -97,19 +104,22 @@ class FaceProcessingHelper {
             generateAugmentedImages(processedFace, personDir);
         }
 
-        saveLabels();
         retrainModel();
 
         recognitionAttempts.put(personId, 0);
         successfulRecognitions.put(personId, 0);
 
-        callback.accept(" Sucesso: " + personName + " registrado com email " + email + ", nível " + role, role);
+        callback.accept(
+                "Sucesso: " + user.getName() + " registrado com email " + user.getEmail() + ", nível " + user.getRole(),
+                user.getRole());
     }
 
-    void authenticate(Mat face, BiConsumer<String, Role> callback) {
+    public Boolean authenticate(Mat face, BiConsumer<String, Role> callback) {
+        boolean encontrado = false;
+
         if (idToNameMap.isEmpty()) {
-            callback.accept(" Erro: Nenhum rosto registrado no sistema!", null);
-            return;
+            callback.accept("Erro: Nenhum rosto registrado no sistema!", null);
+            return encontrado;
         }
 
         Mat processedFace = preprocessFace(face);
@@ -124,6 +134,8 @@ class FaceProcessingHelper {
         if (predictedLabel == -1 || conf > LIMIAR_RECONHECIMENTO || !isConfidenceReliable(conf, predictedLabel)) {
             callback.accept("Rosto não reconhecido (confiança: " + String.format("%.2f", conf) + ")", null);
         } else {
+            encontrado = true;
+
             recognitionAttempts.put(predictedLabel,
                     recognitionAttempts.getOrDefault(predictedLabel, 0) + 1);
             successfulRecognitions.put(predictedLabel,
@@ -138,6 +150,8 @@ class FaceProcessingHelper {
             callback.accept("Autenticado como: " + personName + " (" + email + ") - Nível: " + role +
                     " - Confiança: " + String.format("%.2f", conf), role);
         }
+
+        return encontrado;
     }
 
     // ==================== MÉTODOS AUXILIARES ====================
@@ -155,23 +169,30 @@ class FaceProcessingHelper {
     void generateAugmentedImages(Mat original, File outputDir) {
         try {
             Mat brighter = adjustBrightness(original, 1.3);
-            opencv_imgcodecs.imwrite(new File(outputDir, "bright_" + System.currentTimeMillis() + ".png").getAbsolutePath(), brighter);
+            opencv_imgcodecs.imwrite(
+                    new File(outputDir, "bright_" + System.currentTimeMillis() + ".png").getAbsolutePath(), brighter);
 
             Mat darker = adjustBrightness(original, 0.7);
-            opencv_imgcodecs.imwrite(new File(outputDir, "dark_" + System.currentTimeMillis() + ".png").getAbsolutePath(), darker);
+            opencv_imgcodecs.imwrite(
+                    new File(outputDir, "dark_" + System.currentTimeMillis() + ".png").getAbsolutePath(), darker);
 
             Mat flipped = new Mat();
             org.bytedeco.opencv.global.opencv_core.flip(original, flipped, 1);
-            opencv_imgcodecs.imwrite(new File(outputDir, "flipped_" + System.currentTimeMillis() + ".png").getAbsolutePath(), flipped);
+            opencv_imgcodecs.imwrite(
+                    new File(outputDir, "flipped_" + System.currentTimeMillis() + ".png").getAbsolutePath(), flipped);
 
             Mat rotated2 = rotateImageSimple(original, 2);
             if (!rotated2.empty()) {
-                opencv_imgcodecs.imwrite(new File(outputDir, "rotated2_" + System.currentTimeMillis() + ".png").getAbsolutePath(), rotated2);
+                opencv_imgcodecs.imwrite(
+                        new File(outputDir, "rotated2_" + System.currentTimeMillis() + ".png").getAbsolutePath(),
+                        rotated2);
             }
 
             Mat rotatedMinus2 = rotateImageSimple(original, -2);
             if (!rotatedMinus2.empty()) {
-                opencv_imgcodecs.imwrite(new File(outputDir, "rotatedMinus2_" + System.currentTimeMillis() + ".png").getAbsolutePath(), rotatedMinus2);
+                opencv_imgcodecs.imwrite(
+                        new File(outputDir, "rotatedMinus2_" + System.currentTimeMillis() + ".png").getAbsolutePath(),
+                        rotatedMinus2);
             }
 
         } catch (Exception e) {
@@ -188,15 +209,16 @@ class FaceProcessingHelper {
     Mat rotateImageSimple(Mat src, double angle) {
         try {
             Mat dst = new Mat();
-            if (angle == 0) return src.clone();
+            if (angle == 0)
+                return src.clone();
 
             double radians = Math.toRadians(angle);
             double shear = Math.tan(radians);
 
             Mat warpMat = new Mat(2, 3, CV_32FC1);
             float[] data = {
-                1.0f, (float) shear, (float) (-shear * src.rows() / 2),
-                (float) -shear, 1.0f, (float) (shear * src.cols() / 2)
+                    1.0f, (float) shear, (float) (-shear * src.rows() / 2),
+                    (float) -shear, 1.0f, (float) (shear * src.cols() / 2)
             };
             warpMat.data().put(new FloatPointer(data));
             warpAffine(src, dst, warpMat, src.size());
@@ -210,7 +232,8 @@ class FaceProcessingHelper {
 
     boolean isConfidenceReliable(double confidence, int label) {
         File userDir = new File(FACES_DIR, String.valueOf(label));
-        if (!userDir.exists()) return false;
+        if (!userDir.exists())
+            return false;
 
         File[] imageFiles = userDir.listFiles();
         int imageCount = imageFiles != null ? imageFiles.length : 0;
@@ -230,7 +253,8 @@ class FaceProcessingHelper {
             for (Map.Entry<Integer, String> entry : idToNameMap.entrySet()) {
                 int id = entry.getKey();
                 File personDir = new File(FACES_DIR, String.valueOf(id));
-                if (!personDir.exists()) continue;
+                if (!personDir.exists())
+                    continue;
 
                 File[] imageFiles = personDir.listFiles();
                 if (imageFiles == null || imageFiles.length < MIN_IMAGES_PER_USER) {
@@ -242,9 +266,9 @@ class FaceProcessingHelper {
                 for (File imgFile : imageFiles) {
                     if (imageFiles.length >= 8 &&
                             (imgFile.getName().contains("bright_") ||
-                             imgFile.getName().contains("dark_") ||
-                             imgFile.getName().contains("flipped_") ||
-                             imgFile.getName().contains("rotated"))) {
+                                    imgFile.getName().contains("dark_") ||
+                                    imgFile.getName().contains("flipped_") ||
+                                    imgFile.getName().contains("rotated"))) {
                         continue;
                     }
 
@@ -277,49 +301,14 @@ class FaceProcessingHelper {
         }
     }
 
-    void loadLabels() {
-        File file = new File(LABELS_FILE);
-        if (!file.exists()) return;
+    public void loadLabels(List<User> users) {
+        for (User user : users) {
+            idToNameMap.put(user.getId().intValue(), user.getName());
+            idToEmailMap.put(user.getId().intValue(), user.getEmail());
+            idToRoleMap.put(user.getId().intValue(), user.getRole());
 
-        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] parts = line.split(";");
-                if (parts.length >= 4) { 
-                    int id = Integer.parseInt(parts[0]);
-                    String name = parts[1];
-                    String email = parts[2];
-                    Role role = Role.valueOf(parts[3]); 
-                    
-                    idToNameMap.put(id, name);
-                    idToEmailMap.put(id, email);
-                    idToRoleMap.put(id, role);
-
-                    if (id >= nextId) nextId = id + 1;
-
-                    recognitionAttempts.put(id, 0);
-                    successfulRecognitions.put(id, 0);
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    void saveLabels() {
-        try {
-            new File(FACES_DIR).mkdirs();
-            try (PrintWriter pw = new PrintWriter(new FileWriter(LABELS_FILE))) {
-                for (Map.Entry<Integer, String> entry : idToNameMap.entrySet()) {
-                    int id = entry.getKey();
-                    String name = entry.getValue();
-                    String email = idToEmailMap.get(id);
-                    Role role = idToRoleMap.get(id);
-                    pw.println(id + ";" + name + ";" + email + ";" + role);
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+            recognitionAttempts.put(user.getId().intValue(), 0);
+            successfulRecognitions.put(user.getId().intValue(), 0);
         }
     }
 }

@@ -2,28 +2,34 @@ package com.unip.controller;
 
 import java.util.Optional;
 
-import com.unip.model.Role;
-
-import javafx.application.Platform;
-import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.scene.control.*;
-import javafx.scene.layout.GridPane;
-import javafx.stage.Stage;
-import javafx.scene.image.ImageView;
-
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import com.unip.config.SpringContext;
+import com.unip.model.Role;
+import com.unip.model.User;
 import com.unip.service.CameraService;
 import com.unip.service.FaceService;
 import com.unip.service.RuralPropertyService;
-import com.unip.service.UserService; // ADICIONE ESTE IMPORT
+import com.unip.service.UserService;
+
+import javafx.application.Platform;
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
+import javafx.scene.control.RadioButton;
+import javafx.scene.control.TextField;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.GridPane;
+import javafx.stage.Stage;
 
 @Component
 public class UIController {
@@ -32,7 +38,7 @@ public class UIController {
     private RuralPropertyService propertyService;
 
     @Autowired
-    private UserService userService; // ADICIONE ESTA INJEÇÃO
+    private UserService userService;
 
     @FXML
     private RadioButton cameraToggle;
@@ -60,36 +66,14 @@ public class UIController {
     private static final String CAMERA_ON_TEXT = "Turn On Camera";
     private static final String CAMERA_OFF_TEXT = "Turn Off Camera";
 
-    // Classe interna para armazenar nome, email e role
-    private static class UserData {
-        private final String name;
-        private final String email;
-        private final Role role;
-
-        public UserData(String name, String email, Role role) {
-            this.name = name;
-            this.email = email;
-            this.role = role;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public String getEmail() {
-            return email;
-        }
-
-        public Role getRole() {
-            return role;
-        }
-    }
-
     @FXML
     private void initialize() {
         cameraToggle.setText(CAMERA_ON_TEXT);
         cameraToggle.setOnAction(e -> toggleCamera());
         markFacesToggle.setOnAction(e -> markFaces = !markFaces);
+
+        var users = userService.findAll();
+        faceService.loadUsers(users);
 
         registerFaceButton.setOnAction(e -> {
             try {
@@ -106,10 +90,10 @@ public class UIController {
             try {
                 Mat frame = cameraService.captureFrame();
                 if (frame != null) {
-                    faceService.authenticate(frame, (message,role) ->{
-                        if (role!= null){
+                    faceService.authenticate(frame, (message, role) -> {
+                        if (role != null) {
                             openRoleWindow(role);
-                        }else{
+                        } else {
                             showMessage(message);
                         }
                     });
@@ -118,6 +102,7 @@ public class UIController {
                 ex.printStackTrace();
             }
         });
+
         Platform.runLater(this::setupKeyboardShortcuts);
     }
 
@@ -135,7 +120,7 @@ public class UIController {
     }
 
     private void showRegistrationDialog(Mat frame) {
-        Dialog<UserData> dialog = new Dialog<>();
+        Dialog<User> dialog = new Dialog<>();
         dialog.setTitle("Registrar Novo Usuário");
         dialog.setHeaderText("Digite os dados do usuário:");
 
@@ -162,17 +147,18 @@ public class UIController {
 
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == registerButtonType) {
-                return new UserData(nameField.getText(), emailField.getText(),Role.LEVEL_1);
+                return User.builder().name(nameField.getText()).email(emailField.getText()).role(Role.LEVEL_1).build();
             }
+
             return null;
         });
 
-        Optional<UserData> result = dialog.showAndWait();
+        Optional<User> result = dialog.showAndWait();
 
-        result.ifPresent(userData -> {
-            String name = userData.getName();
-            String email = userData.getEmail();
-            Role role = userData.getRole();
+        result.ifPresent(user -> {
+            String name = user.getName();
+            String email = user.getEmail();
+            Role role = user.getRole();
 
             if (name == null || name.trim().isEmpty()) {
                 showMessage("Erro: Nome é obrigatório!");
@@ -184,12 +170,17 @@ public class UIController {
                 return;
             }
 
-            faceService.register(frame, name, email, role, (message, registeredRole) -> {
-                showMessage(message);
-                if(registeredRole != null){
-                    openRoleWindow(registeredRole);
-                }
-            });
+            try {
+                user = userService.saveUser(user);
+
+                faceService.register(frame, user, (message, registeredRole) -> {
+                    if (registeredRole != null) {
+                        openRoleWindow(registeredRole);
+                    }
+                });
+            } catch (Exception e) {
+                showMessage("Erro: " + e.getMessage());
+            }
         });
     }
 
@@ -232,67 +223,58 @@ public class UIController {
         });
     }
 
-    private void showMessage(String message, Role role) {
-        showMessage(message);
-    }
-
     public void shutdown() {
         cameraService.stopCamera();
     }
 
     private void openRoleWindow(Role role) {
-    Platform.runLater(() -> {
-        try {
-            String fxmlFile = "";
-            String title = "";
-            
-            switch (role) {
-                case LEVEL_1:
-                    fxmlFile = "/view/MainWindowBaseUser.fxml";
-                    title = "Sistema - Nível 1";
-                    break;
-                case LEVEL_2:
-                    fxmlFile = "/view/MainWindowIntermediaryUser.fxml";
-                    title = "Sistema - Nível 2";
-                    break;
-                case LEVEL_3:
-                    fxmlFile = "/view/MainWindowTopUser.fxml";
-                    title = "Sistema - Nível 3";
-                    break;
-                default:
-                    fxmlFile = "/view/MainWindowBaseUser.fxml";
-                    title = "Sistema - Nível 1";
+        Platform.runLater(() -> {
+            try {
+                String fxmlFile = "/view/MainWindowTopUser.fxml";
+                String title = "";
+
+                switch (role) {
+                    case LEVEL_1:
+                        title = "Sistema - Nível 1";
+                        break;
+
+                    case LEVEL_2:
+                        title = "Sistema - Nível 2";
+                        break;
+
+                    case LEVEL_3:
+                        title = "Sistema - Nível 3";
+                        break;
+
+                    default:
+                        title = "Sistema - Nível 1";
+                }
+
+                Stage currentStage = (Stage) cameraView.getScene().getWindow();
+                currentStage.close();
+
+                ApplicationContext context = SpringContext.getApplicationContext();
+                FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlFile));
+                loader.setControllerFactory(context::getBean);
+
+                Parent root = loader.load();
+
+                Object controller = loader.getController();
+
+                if (controller instanceof MainWindowTopUserController) {
+                    MainWindowTopUserController topController = (MainWindowTopUserController) controller;
+                    topController.setPropertyService(propertyService);
+                }
+
+                Stage newStage = new Stage();
+                newStage.setTitle(title);
+                newStage.setScene(new Scene(root));
+                newStage.show();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                showMessage("Erro ao abrir a janela: " + e.getMessage());
             }
-            
-            Stage currentStage = (Stage) cameraView.getScene().getWindow();
-            currentStage.close();
-            
-            ApplicationContext context = SpringContext.getApplicationContext();
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlFile));
-            loader.setControllerFactory(context::getBean); 
-            
-            Parent root = loader.load();
-            
-            Object controller = loader.getController();
-            
-            if (controller instanceof MainWindowBaseUserController) {
-                ((MainWindowBaseUserController) controller).setPropertyService(propertyService);
-            } else if (controller instanceof MainWindowIntermediaryUserController) {
-                ((MainWindowIntermediaryUserController) controller).setPropertyService(propertyService);
-            } else if (controller instanceof MainWindowTopUserController) {
-                MainWindowTopUserController topController = (MainWindowTopUserController) controller;
-                topController.setPropertyService(propertyService);
-            }
-            
-            Stage newStage = new Stage();
-            newStage.setTitle(title);
-            newStage.setScene(new Scene(root));
-            newStage.show();
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-            showMessage("Erro ao abrir a janela: " + e.getMessage());
-        }
-    });
-}
+        });
+    }
 }

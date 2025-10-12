@@ -6,19 +6,25 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox alignment="CENTER" spacing="10" style="-fx-padding: 20; -fx-background-color: #DEDEDE;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.unip.controller.UIController">
+<VBox alignment="CENTER" spacing="10" style="-fx-padding: 20; -fx-background-color: #DEDEDE;"
+   xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+   fx:controller="com.unip.controller.UIController">
 
-    <RadioButton fx:id="cameraToggle" text="Camera Off" />
-    <RadioButton fx:id="markFacesToggle" text="Mark Faces" />
+   <RadioButton fx:id="cameraToggle" text="Camera Off" />
+   <RadioButton fx:id="markFacesToggle" text="Mark Faces" />
 
-    <ImageView fx:id="cameraView" fitHeight="400" fitWidth="600" preserveRatio="true" />
-    <Button fx:id="authFaceButton" style="-fx-background-radius: 10; -fx-background-color: #FF7F24;" text="Authenticate face">
+   <ImageView fx:id="cameraView" fitHeight="400" fitWidth="600" preserveRatio="true" />
+   <Button fx:id="authFaceButton" style="-fx-background-radius: 10; -fx-background-color: #FF7F24;"
+      text="Authenticate face">
       <font>
          <Font name="Bauhaus 93" size="20.0" />
-      </font></Button>
+      </font>
+   </Button>
 
-    <Button fx:id="registerFaceButton" style="-fx-background-radius: 10; -fx-background-color: #FF7F24;" text="Register new face">
+   <Button fx:id="registerFaceButton"
+      style="-fx-background-radius: 10; -fx-background-color: #FF7F24;" text="Register new face">
       <font>
          <Font name="Bauhaus 93" size="14.0" />
-      </font></Button>
+      </font>
+   </Button>
 </VBox>

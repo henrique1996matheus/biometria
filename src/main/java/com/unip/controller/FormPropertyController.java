@@ -2,9 +2,11 @@ package com.unip.controller;
 
 import java.net.URL;
 import java.time.LocalDate;
+import java.util.Objects;
 import java.util.ResourceBundle;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.unip.model.RuralProperty;
 import com.unip.service.RuralPropertyService;
@@ -17,14 +19,15 @@ import javafx.scene.control.DatePicker;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
-public class FormPropertyController implements Initializable{
-    
+@Component
+public class FormPropertyController implements Initializable {
+
     @Autowired
     private RuralPropertyService propertyService;
-    
+
     private RuralProperty propertyToEdit;
     private MainWindowTopUserController mainController;
-    
+
     @FXML
     private Button btn_cancel;
 
@@ -41,15 +44,15 @@ public class FormPropertyController implements Initializable{
     private TextField txtfield_owner;
 
     @FXML
-    void cancel_edition() {
+    void cancel_edition(javafx.scene.input.MouseEvent event) {
         closeWindow();
     }
 
     @FXML
-    void save_new_date() {
+    void save_new_date(javafx.scene.input.MouseEvent event) {
         saveProperty();
     }
-    
+
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         configureFields();
@@ -58,14 +61,18 @@ public class FormPropertyController implements Initializable{
     private void configureFields() {
         txtfield_address.setEditable(false);
         txtfield_owner.setEditable(false);
-        
+
         txtfield_address.setStyle("-fx-background-color: #f0f0f0; -fx-text-fill: #666666;");
         txtfield_owner.setStyle("-fx-background-color: #f0f0f0; -fx-text-fill: #666666;");
-        
+
         dtpicker_fiscalization.setStyle("-fx-background-color: white;");
     }
 
     public void setPropertyToEdit(RuralProperty property) {
+        if (Objects.isNull(property)) {
+            property = new RuralProperty();
+        }
+
         this.propertyToEdit = property;
         loadPropertyData();
     }
@@ -78,7 +85,7 @@ public class FormPropertyController implements Initializable{
         if (propertyToEdit != null) {
 
             txtfield_owner.setText(propertyToEdit.getOwner());
-            
+
             if (propertyToEdit.getInspectionDate() != null) {
                 dtpicker_fiscalization.setValue(propertyToEdit.getInspectionDate());
             }
@@ -100,7 +107,7 @@ public class FormPropertyController implements Initializable{
 
             // Atualiza a data diretamente no objeto
             propertyToEdit.setInspectionDate(newDate);
-            
+
             // Salva no banco de dados
             propertyService.atualizarPropriedade(propertyToEdit);
 

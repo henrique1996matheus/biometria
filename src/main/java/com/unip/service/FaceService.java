@@ -1,13 +1,17 @@
 package com.unip.service;
 
-import com.unip.model.Role;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.BiConsumer;
+
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.bytedeco.opencv.opencv_face.FaceRecognizer;
 import org.bytedeco.opencv.opencv_face.LBPHFaceRecognizer;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
-import java.util.function.BiConsumer;
+import com.unip.model.Role;
+import com.unip.model.User;
 
 @Service
 public class FaceService {
@@ -17,7 +21,6 @@ public class FaceService {
     private final Map<Integer, Role> idToRoleMap = new HashMap<>();
 
     private final String FACES_DIR = "faces";
-    private final String LABELS_FILE = FACES_DIR + "/labels.txt";
 
     private final Map<Integer, Integer> recognitionAttempts = new HashMap<>();
     private final Map<Integer, Integer> successfulRecognitions = new HashMap<>();
@@ -26,17 +29,20 @@ public class FaceService {
 
     public FaceService() {
         this.faceRecognizer = LBPHFaceRecognizer.create();
-        this.helper = new FaceProcessingHelper(FACES_DIR, LABELS_FILE, faceRecognizer,
+        this.helper = new FaceProcessingHelper(FACES_DIR, faceRecognizer,
                 idToNameMap, idToEmailMap, idToRoleMap, recognitionAttempts, successfulRecognitions);
-        helper.loadLabels();
+    }
+
+    public void register(Mat face, User user, BiConsumer<String, Role> callback) {
+        helper.register(face, user, callback);
+    }
+
+    public Boolean authenticate(Mat face, BiConsumer<String, Role> callback) {
+        return helper.authenticate(face, callback);
+    }
+
+    public void loadUsers(List<User> users) {
+        helper.loadLabels(users);
         helper.retrainModel();
-    }
-
-    public void register(Mat face, String personName, String email, Role role, BiConsumer<String, Role> callback) {
-        helper.register(face, personName, email, role, callback);
-    }
-
-    public void authenticate(Mat face, BiConsumer<String, Role> callback) {
-        helper.authenticate(face, callback);
     }
 }
