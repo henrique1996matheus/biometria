@@ -41,12 +41,12 @@ public class FormPropertyController implements Initializable{
     private TextField txtfield_owner;
 
     @FXML
-    void cancel_edition() {
+    void cancel_edition(javafx.scene.input.MouseEvent event) {
         closeWindow();
     }
 
     @FXML
-    void save_new_date() {
+    void save_new_date(javafx.scene.input.MouseEvent event) {
         saveProperty();
     }
     

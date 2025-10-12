@@ -1,6 +1,5 @@
 package com.unip.controller;
 
-import java.awt.event.MouseEvent;
 import java.net.URL;
 import java.util.ResourceBundle;
 
@@ -15,12 +14,12 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.DatePicker;
 import javafx.scene.control.TextField;
+import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
 
-public class FormUserController implements Initializable{
-    
+public class FormUserController implements Initializable {
+
     @Autowired
     private UserService userService;
 
@@ -52,8 +51,8 @@ public class FormUserController implements Initializable{
     void save_new_access_level(MouseEvent event) {
         saveUser();
     }
-    
-     @Override
+
+    @Override
     public void initialize(URL url, ResourceBundle rb) {
         setupComboBox();
         configureFields();
@@ -67,7 +66,7 @@ public class FormUserController implements Initializable{
     private void configureFields() {
         txtfield_username.setEditable(false);
         txtfield_email.setEditable(false);
-        
+
         txtfield_username.setStyle("-fx-background-color: #f0f0f0;");
         txtfield_email.setStyle("-fx-background-color: #f0f0f0;");
     }

@@ -10,7 +10,10 @@
 <?import javafx.scene.text.Font?>
 
 
-<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="604.0" prefWidth="500.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.unip.controller.FormUserController">
+<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
+   prefHeight="604.0" prefWidth="500.0" xmlns="http://javafx.com/javafx/25"
+   xmlns:fx="http://javafx.com/fxml/1"
+   fx:controller="com.unip.controller.FormPropertyController">
    <children>
       <HBox prefHeight="114.0" prefWidth="500.0" />
       <HBox prefHeight="100.0" prefWidth="200.0">
@@ -66,12 +69,14 @@
       </HBox>
       <HBox prefHeight="100.0" prefWidth="200.0">
          <children>
-            <Button fx:id="btn_cancel" mnemonicParsing="false" onMouseClicked="#cancel_edition" prefHeight="45.0" prefWidth="120.0" text="Cancel">
+            <Button fx:id="btn_cancel" mnemonicParsing="false" onMouseClicked="#cancel_edition"
+               prefHeight="45.0" prefWidth="120.0" text="Cancel">
                <HBox.margin>
                   <Insets left="90.0" right="50.0" />
                </HBox.margin>
             </Button>
-            <Button fx:id="btn_save" mnemonicParsing="false" onMouseClicked="#save_new_date" prefHeight="45.0" prefWidth="120.0" text="Save" />
+            <Button fx:id="btn_save" mnemonicParsing="false" onMouseClicked="#save_new_date"
+               prefHeight="45.0" prefWidth="120.0" text="Save" />
          </children>
       </HBox>
    </children>

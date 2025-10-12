@@ -230,24 +230,23 @@ public class UIController {
     private void openRoleWindow(Role role) {
         Platform.runLater(() -> {
             try {
-                String fxmlFile = "";
+                String fxmlFile = "/view/MainWindowTopUser.fxml";
                 String title = "";
 
                 switch (role) {
                     case LEVEL_1:
-                        fxmlFile = "/view/MainWindowBaseUser.fxml";
                         title = "Sistema - Nível 1";
                         break;
+
                     case LEVEL_2:
-                        fxmlFile = "/view/MainWindowIntermediaryUser.fxml";
                         title = "Sistema - Nível 2";
                         break;
+
                     case LEVEL_3:
-                        fxmlFile = "/view/MainWindowTopUser.fxml";
                         title = "Sistema - Nível 3";
                         break;
+
                     default:
-                        fxmlFile = "/view/MainWindowBaseUser.fxml";
                         title = "Sistema - Nível 1";
                 }
 
@@ -262,11 +261,7 @@ public class UIController {
 
                 Object controller = loader.getController();
 
-                if (controller instanceof MainWindowBaseUserController) {
-                    ((MainWindowBaseUserController) controller).setPropertyService(propertyService);
-                } else if (controller instanceof MainWindowIntermediaryUserController) {
-                    ((MainWindowIntermediaryUserController) controller).setPropertyService(propertyService);
-                } else if (controller instanceof MainWindowTopUserController) {
+                if (controller instanceof MainWindowTopUserController) {
                     MainWindowTopUserController topController = (MainWindowTopUserController) controller;
                     topController.setPropertyService(propertyService);
                 }
