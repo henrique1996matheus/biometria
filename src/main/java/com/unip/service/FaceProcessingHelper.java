@@ -22,8 +22,12 @@ import org.bytedeco.javacpp.IntPointer;
 import org.bytedeco.opencv.global.opencv_imgcodecs;
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.bytedeco.opencv.opencv_core.MatVector;
+import org.bytedeco.opencv.opencv_core.RectVector;
 import org.bytedeco.opencv.opencv_core.Size;
 import org.bytedeco.opencv.opencv_face.FaceRecognizer;
+import org.bytedeco.opencv.opencv_core.Rect;
+import org.bytedeco.opencv.opencv_objdetect.CascadeClassifier;
+import org.bytedeco.opencv.global.opencv_imgproc;
 
 import com.unip.model.Role;
 import com.unip.model.User;
@@ -148,7 +152,50 @@ class FaceProcessingHelper {
         }
     }
 
-    // ==================== MÉTODOS AUXILIARES ====================
+    public void detectFaces(Mat frame, boolean drawRects) {
+        try {
+            CascadeClassifier classifier = loadCascade("/haarcascade_frontalface_default.xml");
+            Mat gray = new Mat();
+            opencv_imgproc.cvtColor(frame, gray, opencv_imgproc.COLOR_BGR2GRAY);
+
+            RectVector faces = new RectVector();
+            classifier.detectMultiScale(gray, faces);
+
+            if (drawRects) {
+                for (int i = 0; i < faces.size(); i++) {
+                    Rect r = faces.get(i);
+                    // Versão com espessura específica
+                    opencv_imgproc.rectangle(frame,
+                        new org.bytedeco.opencv.opencv_core.Point(r.x(), r.y()),
+                        new org.bytedeco.opencv.opencv_core.Point(r.x() + r.width(), r.y() + r.height()),
+                        new org.bytedeco.opencv.opencv_core.Scalar(0, 255, 0, 0), 2, 0, 0
+                    );
+                }
+            }
+
+            if (faces.size() > 0) {
+                System.out.println("Faces detectadas: " + faces.size());
+            }
+
+        } catch (Exception e) {
+            System.err.println("Erro na detecção de faces: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private CascadeClassifier loadCascade(String cascadePath) {
+        try {
+            CascadeClassifier classifier = new CascadeClassifier();
+            String path = getClass().getResource(cascadePath).getPath();
+
+            if (!classifier.load(path)) {
+                throw new RuntimeException("Não foi possível carregar o classificador: " + cascadePath);
+            }
+            return classifier;
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao carregar classificador Haar Cascade: " + cascadePath, e);
+        }
+    }
 
     Mat preprocessFace(Mat face) {
         Mat processed = new Mat();

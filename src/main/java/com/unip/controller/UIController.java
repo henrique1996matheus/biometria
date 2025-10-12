@@ -190,6 +190,10 @@ public class UIController {
             cameraToggle.setText(CAMERA_ON_TEXT);
         } else {
             cameraService.startCamera(frame -> {
+                if (markFaces) {
+                    faceService.detectFaces(frame, true);
+                }
+
                 Platform.runLater(() -> {
                     cameraView.setImage(matToImage(frame));
                 });

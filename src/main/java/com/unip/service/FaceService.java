@@ -45,4 +45,8 @@ public class FaceService {
         helper.loadLabels(users);
         helper.retrainModel();
     }
+
+    public void detectFaces(Mat frame, boolean drawRects) {
+        helper.detectFaces(frame, drawRects);
+    }
 }
