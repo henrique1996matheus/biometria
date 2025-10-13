@@ -43,6 +43,8 @@ public class FormPropertyController implements Initializable {
     @FXML
     private TextField txtfield_owner;
 
+    private Boolean newProperty;
+
     @FXML
     void cancel_edition(javafx.scene.input.MouseEvent event) {
         closeWindow();
@@ -55,26 +57,29 @@ public class FormPropertyController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        configureFields();
     }
 
-    private void configureFields() {
-        txtfield_address.setEditable(false);
-        txtfield_owner.setEditable(false);
+    private void toggleFields(Boolean editable) {
+        txtfield_address.setEditable(editable);
+        txtfield_owner.setEditable(editable);
 
-        txtfield_address.setStyle("-fx-background-color: #f0f0f0; -fx-text-fill: #666666;");
-        txtfield_owner.setStyle("-fx-background-color: #f0f0f0; -fx-text-fill: #666666;");
+        if (!editable) {
+            txtfield_address.setStyle("-fx-background-color: #f0f0f0; -fx-text-fill: #666666;");
+            txtfield_owner.setStyle("-fx-background-color: #f0f0f0; -fx-text-fill: #666666;");
+        }
 
         dtpicker_fiscalization.setStyle("-fx-background-color: white;");
     }
 
     public void setPropertyToEdit(RuralProperty property) {
-        if (Objects.isNull(property)) {
-            property = new RuralProperty();
-        }
-
         this.propertyToEdit = property;
-        loadPropertyData();
+
+        if (Objects.nonNull(property)) {
+            loadPropertyData();
+            toggleFields(false);
+        } else {
+            toggleFields(true);
+        }
     }
 
     public void setMainController(MainWindowController mainController) {
@@ -85,6 +90,7 @@ public class FormPropertyController implements Initializable {
         if (propertyToEdit != null) {
 
             txtfield_owner.setText(propertyToEdit.getOwner());
+            txtfield_address.setText(propertyToEdit.getAddress());
 
             if (propertyToEdit.getInspectionDate() != null) {
                 dtpicker_fiscalization.setValue(propertyToEdit.getInspectionDate());
@@ -93,7 +99,7 @@ public class FormPropertyController implements Initializable {
     }
 
     private void saveProperty() {
-        if (propertyToEdit == null) {
+        if (propertyToEdit == null && !newProperty) {
             showAlert("Erro", "Nenhuma propriedade selecionada para edição.");
             return;
         }
@@ -105,17 +111,28 @@ public class FormPropertyController implements Initializable {
                 return;
             }
 
-            // Atualiza a data diretamente no objeto
-            propertyToEdit.setInspectionDate(newDate);
+            if (newProperty) {
+                var property = RuralProperty.builder()
+                        .owner(txtfield_owner.getText())
+                        .address(txtfield_address.getText())
+                        .inspectionDate(newDate)
+                        .build();
 
-            // Salva no banco de dados
-            propertyService.atualizarPropriedade(propertyToEdit);
+                propertyService.cadastrarNovaPropriedade(property);
+            } else {
+
+                // Atualiza a data diretamente no objeto
+                propertyToEdit.setInspectionDate(newDate);
+
+                // Salva no banco de dados
+                propertyService.atualizarPropriedade(propertyToEdit);
+            }
 
             if (mainController != null) {
                 mainController.refreshPropertiesTables();
             }
 
-            showAlert("Sucesso", "Data de fiscalização atualizada com sucesso!");
+            showAlert("Sucesso", "Salvo com sucesso!");
             closeWindow();
 
         } catch (Exception e) {
@@ -135,5 +152,9 @@ public class FormPropertyController implements Initializable {
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+
+    public void setNewProperty(Boolean newProperty) {
+        this.newProperty = newProperty;
     }
 }

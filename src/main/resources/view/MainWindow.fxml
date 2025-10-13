@@ -73,6 +73,7 @@
                   <TableView fx:id="properties_table" prefHeight="517.0" prefWidth="900.0">
                      <columns>
                         <TableColumn fx:id="tbl_col_owner" minWidth="75.0" text="Proprietário" />
+                        <TableColumn fx:id="tbl_col_address" minWidth="75.0" text="Endereço" />
                         <TableColumn fx:id="tbl_col_fisc_date" minWidth="125.0" prefWidth="-1.0"
                            text="Data de Fiscalização" />
                         <TableColumn fx:id="tb_col_acoes_properties" text="Ações" />
@@ -108,12 +109,7 @@
             <VBox fx:id="add_users" alignment="CENTER" onMouseClicked="#register_user"
                prefHeight="200.0" prefWidth="100.0">
                <children>
-                  <Button fx:id="btnLigarCamera" mnemonicParsing="false"
-                     onMouseClicked="#toggle_camera" text="Ligar Câmera">
-                     <VBox.margin>
-                        <Insets bottom="10.0" />
-                     </VBox.margin>
-                  </Button>
+
 
                   <ImageView fx:id="camera_view" fitHeight="338.0" fitWidth="868.0"
                      pickOnBounds="true" preserveRatio="true">
@@ -122,12 +118,17 @@
                      </VBox.margin>
                   </ImageView>
 
+                  <Button fx:id="btnLigarCamera" mnemonicParsing="false"
+                     onMouseClicked="#toggle_camera" text="Ligar Câmera"
+                     style="-fx-background-radius: 10;">
+                     <VBox.margin>
+                        <Insets bottom="10.0" />
+                     </VBox.margin>
+                  </Button>
+
                   <Button fx:id="btn_register_user" mnemonicParsing="false"
                      onMouseClicked="#register_user" style="-fx-background-radius: 10;"
-                     text="Register new face">
-                     <font>
-                        <Font name="Bauhaus 93" size="22.0" />
-                     </font>
+                     text="Cadastrar novo rosto">
                   </Button>
                </children>
             </VBox>

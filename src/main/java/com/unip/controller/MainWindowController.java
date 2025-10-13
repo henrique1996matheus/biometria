@@ -128,6 +128,9 @@ public class MainWindowController implements Initializable {
     private TableColumn<RuralProperty, String> tbl_col_owner;
 
     @FXML
+    private TableColumn<RuralProperty, String> tbl_col_address;
+
+    @FXML
     private VBox users_info;
 
     @FXML
@@ -243,18 +246,16 @@ public class MainWindowController implements Initializable {
     }
 
     private void setupUsersTable() {
-
         tb_col_username.setCellValueFactory(new PropertyValueFactory<>("name"));
         tb_col_email.setCellValueFactory(new PropertyValueFactory<>("email"));
         tb_col_level_access.setCellValueFactory(new PropertyValueFactory<>("role"));
 
         setupUserActionsColumn();
-
     }
 
     private void setupPropertiesTable() {
-
         tbl_col_owner.setCellValueFactory(new PropertyValueFactory<>("owner"));
+        tbl_col_address.setCellValueFactory(new PropertyValueFactory<>("address"));
         tbl_col_fisc_date.setCellValueFactory(new PropertyValueFactory<>("inspectionDate"));
 
         setupPropertiesActionsColumn();
@@ -311,6 +312,7 @@ public class MainWindowController implements Initializable {
 
             FormPropertyController formController = loader.getController();
             formController.setPropertyToEdit(property);
+            formController.setNewProperty(newProperty);
             formController.setMainController(this);
 
             Stage stage = new Stage();
@@ -319,7 +321,6 @@ public class MainWindowController implements Initializable {
             stage.initModality(Modality.APPLICATION_MODAL);
             stage.setResizable(true);
             stage.showAndWait();
-
         } catch (IOException e) {
             e.printStackTrace();
             showMessage("Erro ao abrir formulário de edição: " + e.getMessage());
@@ -402,6 +403,7 @@ public class MainWindowController implements Initializable {
         if (resultado.isPresent() && resultado.get() == ButtonType.OK) {
             try {
 
+                faceService.delete(user);
                 userService.delete(user.getId());
 
                 usersList.remove(user);

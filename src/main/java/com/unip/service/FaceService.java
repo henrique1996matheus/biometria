@@ -1,5 +1,6 @@
 package com.unip.service;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,5 +53,9 @@ public class FaceService {
 
     public int countFacesInImage(Mat image) {
         return helper.countFacesInImage(image);
+    }
+
+    public void delete(User user) throws IOException {
+        helper.deleteDirectory(user.getId().intValue());
     }
 }

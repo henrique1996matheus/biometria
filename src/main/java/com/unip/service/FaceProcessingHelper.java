@@ -10,6 +10,13 @@ import static org.bytedeco.opencv.global.opencv_imgproc.resize;
 import static org.bytedeco.opencv.global.opencv_imgproc.warpAffine;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -171,10 +178,9 @@ class FaceProcessingHelper {
                 for (int i = 0; i < faces.size(); i++) {
                     Rect r = faces.get(i);
                     opencv_imgproc.rectangle(frame,
-                        new org.bytedeco.opencv.opencv_core.Point(r.x(), r.y()),
-                        new org.bytedeco.opencv.opencv_core.Point(r.x() + r.width(), r.y() + r.height()),
-                        new org.bytedeco.opencv.opencv_core.Scalar(0, 255, 0, 0), 2, 0, 0
-                    );
+                            new org.bytedeco.opencv.opencv_core.Point(r.x(), r.y()),
+                            new org.bytedeco.opencv.opencv_core.Point(r.x() + r.width(), r.y() + r.height()),
+                            new org.bytedeco.opencv.opencv_core.Scalar(0, 255, 0, 0), 2, 0, 0);
                 }
             }
 
@@ -368,5 +374,26 @@ class FaceProcessingHelper {
             System.err.println("Erro ao contar faces: " + e.getMessage());
             return 0;
         }
+    }
+
+    public void deleteDirectory(int id) throws IOException {
+        Path path = Paths.get(FACES_DIR + "/" + id);
+
+        if (!Files.exists(path))
+            return;
+
+        Files.walkFileTree(path, new SimpleFileVisitor<>() {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                Files.delete(file);
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                Files.delete(dir);
+                return FileVisitResult.CONTINUE;
+            }
+        });
     }
 }
