@@ -28,6 +28,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -36,7 +37,6 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
-import javafx.scene.control.RadioButton;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -53,7 +53,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 @Controller
-public class MainWindowTopUserController implements Initializable {
+public class MainWindowController implements Initializable {
 
     @Autowired
     private CameraService cameraService;
@@ -101,10 +101,7 @@ public class MainWindowTopUserController implements Initializable {
     private TableView<RuralProperty> properties_table;
 
     @FXML
-    private RadioButton radio_camera;
-
-    @FXML
-    private RadioButton radio_mark_face;
+    private Button btnLigarCamera;
 
     @FXML
     private StackPane stc_pane_pages;
@@ -131,10 +128,15 @@ public class MainWindowTopUserController implements Initializable {
     private TableColumn<RuralProperty, String> tbl_col_owner;
 
     @FXML
+    private TableColumn<RuralProperty, String> tbl_col_address;
+
+    @FXML
     private VBox users_info;
 
     @FXML
     private TableView<User> users_table;
+
+    private Role currentRole;
 
     @FXML
     void open_add_users_pane(MouseEvent event) {
@@ -150,7 +152,28 @@ public class MainWindowTopUserController implements Initializable {
 
     @FXML
     void logout(MouseEvent event) {
-        showMessage("calmae");
+        Platform.runLater(() -> {
+            try {
+                String fxmlFile = "/view/CameraView.fxml";
+
+                Stage currentStage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+                currentStage.close();
+
+                ApplicationContext context = SpringContext.getApplicationContext();
+                FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlFile));
+                loader.setControllerFactory(context::getBean);
+
+                Parent root = loader.load();
+
+                Stage newStage = new Stage();
+                newStage.setScene(new Scene(root));
+                newStage.show();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                showMessage("Erro ao abrir a janela: " + e.getMessage());
+            }
+        });
     }
 
     @FXML
@@ -168,12 +191,11 @@ public class MainWindowTopUserController implements Initializable {
     void toggle_camera(MouseEvent event) {
         if (cameraActive) {
             stopCamera();
-            radio_camera.setText("Ligar Câmera");
+            btnLigarCamera.setText("Ligar Câmera");
         } else {
             startCamera();
-            radio_camera.setText("Desligar Câmera");
+            btnLigarCamera.setText("Desligar Câmera");
         }
-        radio_mark_face.setVisible(cameraActive);
     }
 
     @FXML
@@ -220,23 +242,20 @@ public class MainWindowTopUserController implements Initializable {
         loadUsersData();
         loadPropertiesData();
 
-        radio_camera.setText("Ligar Câmera");
-        radio_mark_face.setVisible(false);
+        btnLigarCamera.setText("Ligar Câmera");
     }
 
     private void setupUsersTable() {
-
         tb_col_username.setCellValueFactory(new PropertyValueFactory<>("name"));
         tb_col_email.setCellValueFactory(new PropertyValueFactory<>("email"));
         tb_col_level_access.setCellValueFactory(new PropertyValueFactory<>("role"));
 
-        setupActionsColumn();
-
+        setupUserActionsColumn();
     }
 
     private void setupPropertiesTable() {
-
         tbl_col_owner.setCellValueFactory(new PropertyValueFactory<>("owner"));
+        tbl_col_address.setCellValueFactory(new PropertyValueFactory<>("address"));
         tbl_col_fisc_date.setCellValueFactory(new PropertyValueFactory<>("inspectionDate"));
 
         setupPropertiesActionsColumn();
@@ -293,6 +312,7 @@ public class MainWindowTopUserController implements Initializable {
 
             FormPropertyController formController = loader.getController();
             formController.setPropertyToEdit(property);
+            formController.setNewProperty(newProperty);
             formController.setMainController(this);
 
             Stage stage = new Stage();
@@ -301,7 +321,6 @@ public class MainWindowTopUserController implements Initializable {
             stage.initModality(Modality.APPLICATION_MODAL);
             stage.setResizable(true);
             stage.showAndWait();
-
         } catch (IOException e) {
             e.printStackTrace();
             showMessage("Erro ao abrir formulário de edição: " + e.getMessage());
@@ -330,7 +349,7 @@ public class MainWindowTopUserController implements Initializable {
         }
     }
 
-    private void setupActionsColumn() {
+    private void setupUserActionsColumn() {
         tb_col_acoes.setCellFactory(param -> new TableCell<User, Void>() {
             private final Button btnEditar = new Button("Editar");
             private final Button btnExcluir = new Button("Excluir");
@@ -355,6 +374,11 @@ public class MainWindowTopUserController implements Initializable {
                     User user = getTableView().getItems().get(getIndex());
                     excluirUsuario(user);
                 });
+
+                if (currentRole != Role.LEVEL_3) {
+                    btnEditar.setVisible(false);
+                    btnExcluir.setVisible(false);
+                }
             }
 
             @Override
@@ -379,6 +403,7 @@ public class MainWindowTopUserController implements Initializable {
         if (resultado.isPresent() && resultado.get() == ButtonType.OK) {
             try {
 
+                faceService.delete(user);
                 userService.delete(user.getId());
 
                 usersList.remove(user);
@@ -582,6 +607,35 @@ public class MainWindowTopUserController implements Initializable {
         this.userService = userService;
         if (users_table != null) {
             loadUsersData();
+        }
+    }
+
+    public void setCurrentRole(Role role) {
+        System.out.println("\n\n\n\n\n\n\n\n\n\n\n");
+        System.out.println("=======================");
+        System.out.println("Role atual: " + role);
+
+        this.currentRole = role;
+
+        switch (role) {
+            case LEVEL_2:
+                users_btn.setVisible(true);
+                add_user_btn.setVisible(true);
+                add_property_btn.setVisible(false);
+                break;
+
+            case LEVEL_3:
+                users_btn.setVisible(true);
+                add_user_btn.setVisible(true);
+                add_property_btn.setVisible(true);
+                break;
+
+            case LEVEL_1:
+            default:
+                users_btn.setVisible(false);
+                add_user_btn.setVisible(false);
+                add_property_btn.setVisible(false);
+                break;
         }
     }
 }

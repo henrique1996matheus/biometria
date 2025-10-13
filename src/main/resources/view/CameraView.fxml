@@ -10,21 +10,11 @@
    xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
    fx:controller="com.unip.controller.UIController">
 
-   <RadioButton fx:id="cameraToggle" text="Camera Off" />
-   <RadioButton fx:id="markFacesToggle" text="Mark Faces" />
-
    <ImageView fx:id="cameraView" fitHeight="400" fitWidth="600" preserveRatio="true" />
-   <Button fx:id="authFaceButton" style="-fx-background-radius: 10; -fx-background-color: #FF7F24;"
-      text="Authenticate face">
-      <font>
-         <Font name="Bauhaus 93" size="20.0" />
-      </font>
-   </Button>
 
-   <Button fx:id="registerFaceButton"
-      style="-fx-background-radius: 10; -fx-background-color: #FF7F24;" text="Register new face">
-      <font>
-         <Font name="Bauhaus 93" size="14.0" />
-      </font>
-   </Button>
+   <Button fx:id="cameraToggle" style="-fx-background-radius: 10;" text="Ligar Câmera" />
+
+   <Button fx:id="authFaceButton" style="-fx-background-radius: 10;" text="Autenticar Rosto" />
+
+   <Button fx:id="registerFaceButton" style="-fx-background-radius: 10;" text="Cadastrar Novo Rosto" />
 </VBox>

@@ -27,7 +27,7 @@ public class FormUserController implements Initializable {
 
     private User userToEdit;
 
-    private MainWindowTopUserController mainController;
+    private MainWindowController mainController;
 
     @FXML
     private Button btn_cancel;
@@ -63,6 +63,38 @@ public class FormUserController implements Initializable {
 
     private void setupComboBox() {
         combobox_level_access.getItems().addAll(Role.LEVEL_1, Role.LEVEL_2, Role.LEVEL_3);
+
+        combobox_level_access.setCellFactory(cb -> new javafx.scene.control.ListCell<>() {
+            @Override
+            protected void updateItem(Role role, boolean empty) {
+                super.updateItem(role, empty);
+                if (empty || role == null) {
+                    setText(null);
+                } else {
+                    setText(formatRole(role));
+                }
+            }
+        });
+
+        combobox_level_access.setButtonCell(new javafx.scene.control.ListCell<>() {
+            @Override
+            protected void updateItem(Role role, boolean empty) {
+                super.updateItem(role, empty);
+                if (empty || role == null) {
+                    setText(null);
+                } else {
+                    setText(formatRole(role));
+                }
+            }
+        });
+    }
+
+    private String formatRole(Role role) {
+        return switch (role) {
+            case LEVEL_1 -> "Nível 1";
+            case LEVEL_2 -> "Nível 2";
+            case LEVEL_3 -> "Nível 3";
+        };
     }
 
     private void configureFields() {
@@ -78,7 +110,7 @@ public class FormUserController implements Initializable {
         loadUserData();
     }
 
-    public void setMainController(MainWindowTopUserController mainController) {
+    public void setMainController(MainWindowController mainController) {
         this.mainController = mainController;
     }
 

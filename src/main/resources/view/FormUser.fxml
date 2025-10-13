@@ -9,14 +9,11 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
-   prefHeight="604.0" prefWidth="500.0" xmlns="http://javafx.com/javafx/25"
-   xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.unip.controller.FormUserController">
+<VBox xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.unip.controller.FormUserController">
    <children>
-      <HBox prefHeight="114.0" prefWidth="500.0" />
-      <HBox prefHeight="100.0" prefWidth="200.0">
+      <HBox>
          <children>
-            <Label text="Username:">
+            <Label text="Nome:">
                <HBox.margin>
                   <Insets left="30.0" right="15.0" top="12.0" />
                </HBox.margin>
@@ -24,6 +21,7 @@
                   <Font size="18.0" />
                </font>
             </Label>
+
             <TextField fx:id="txtfield_username" prefHeight="26.0" prefWidth="298.0">
                <HBox.margin>
                   <Insets top="13.0" />
@@ -31,9 +29,10 @@
             </TextField>
          </children>
       </HBox>
-      <HBox prefHeight="100.0" prefWidth="200.0">
+
+      <HBox prefWidth="200.0">
          <children>
-            <Label text="e-mail:">
+            <Label prefWidth="100.0" text="E-mail:">
                <HBox.margin>
                   <Insets left="30.0" right="15.0" top="12.0" />
                </HBox.margin>
@@ -41,6 +40,7 @@
                   <Font size="18.0" />
                </font>
             </Label>
+
             <TextField fx:id="txtfield_email" prefHeight="26.0" prefWidth="289.0">
                <HBox.margin>
                   <Insets top="13.0" />
@@ -48,9 +48,10 @@
             </TextField>
          </children>
       </HBox>
-      <HBox prefHeight="100.0" prefWidth="200.0">
+
+      <HBox prefWidth="200.0">
          <children>
-            <Label text="Level access:">
+            <Label prefWidth="175.0" text="Nível de Acesso:">
                <HBox.margin>
                   <Insets left="26.0" right="15.0" top="12.0" />
                </HBox.margin>
@@ -58,28 +59,36 @@
                   <Font size="18.0" />
                </font>
             </Label>
-            <ComboBox fx:id="combobox_level_access" prefHeight="26.0" prefWidth="242.0"
-               promptText="Selecione o nível de acesso">
+
+            <ComboBox fx:id="combobox_level_access" prefHeight="26.0" prefWidth="242.0" promptText="Selecione o nível de acesso">
                <HBox.margin>
                   <Insets left="15.0" top="14.0" />
                </HBox.margin>
             </ComboBox>
          </children>
       </HBox>
-      <HBox prefHeight="100.0" prefWidth="200.0">
+
+      <HBox alignment="CENTER" nodeOrientation="LEFT_TO_RIGHT" prefWidth="200.0" spacing="15.0">
          <children>
-            <Button fx:id="btn_cancel" mnemonicParsing="false" onMouseClicked="#cancel_edition"
-               style="-fx-background-radius: 10; -fx-background-color: #FF7F24; -fx-cursor: hand;"
-               prefHeight="45.0" prefWidth="120.0" text="Cancel">
-               <HBox.margin>
-                  <Insets left="90.0" right="50.0" />
-               </HBox.margin>
+            <Button fx:id="btn_cancel" mnemonicParsing="false" onMouseClicked="#cancel_edition" style="-fx-background-radius: 10; -fx-cursor: hand;" text="Cancelar">
+               <font>
+                  <Font size="18.0" />
+               </font>
             </Button>
 
-            <Button fx:id="btn_save" mnemonicParsing="false" onMouseClicked="#save_new_access_level"
-               style="-fx-background-radius: 10; -fx-background-color: #FF7F24; -fx-cursor: hand;"
-               prefHeight="45.0" prefWidth="120.0" text="Save" />
+            <Button fx:id="btn_save" mnemonicParsing="false" onMouseClicked="#save_new_access_level" style="-fx-background-radius: 10; -fx-cursor: hand;" text="Salvar">
+               <font>
+                  <Font size="18.0" />
+               </font>
+            </Button>
          </children>
+
+         <padding>
+            <Insets bottom="5.0" top="20.0" />
+         </padding>
       </HBox>
    </children>
+   <padding>
+      <Insets right="15.0" />
+   </padding>
 </VBox>
