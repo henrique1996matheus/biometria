@@ -29,16 +29,16 @@ public class CameraService {
 
             Mat frame = new Mat();
             while (cameraAtiva && videoCapture.read(frame)) {
-            if (!frame.empty()) {
-                Mat frameRGB = new Mat();
-                cvtColor(frame, frameRGB, COLOR_BGR2RGB);
-                frameCallback.accept(frameRGB);
-            }
-            try {
-                Thread.sleep(33);
-            } catch (InterruptedException e) {
-                break;
-            }
+                if (!frame.empty()) {
+                    Mat frameRGB = new Mat();
+                    cvtColor(frame, frameRGB, COLOR_BGR2RGB);
+                    frameCallback.accept(frameRGB);
+                }
+                try {
+                    Thread.sleep(33);
+                } catch (InterruptedException e) {
+                    break;
+                }
         }
             videoCapture.release();
         });
