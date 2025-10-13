@@ -17,4 +17,7 @@
    <Button fx:id="authFaceButton" style="-fx-background-radius: 10;" text="Autenticar Rosto" />
 
    <Button fx:id="registerFaceButton" style="-fx-background-radius: 10;" text="Cadastrar Novo Rosto" />
+
+   <Button fx:id="markFacesButton" style="-fx-background-radius: 10;" text="Detectar rosto" />
+
 </VBox>

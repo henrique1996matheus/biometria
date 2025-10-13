@@ -49,6 +49,9 @@ public class UIController {
     private Button authFaceButton;
 
     @FXML
+    private Button markFacesButton;
+
+    @FXML
     private ImageView cameraView;
 
     private volatile boolean markFaces = false;
@@ -96,6 +99,12 @@ public class UIController {
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
+        });
+
+        markFacesButton.setOnAction(e -> {
+            markFaces = !markFaces;
+            String buttonText = markFaces ? "Parar detecção" : "Detectar rosto";
+            markFacesButton.setText(buttonText);
         });
 
         Platform.runLater(this::setupKeyboardShortcuts);
