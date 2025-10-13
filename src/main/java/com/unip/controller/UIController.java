@@ -25,7 +25,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
-import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
@@ -41,10 +40,7 @@ public class UIController {
     private UserService userService;
 
     @FXML
-    private RadioButton cameraToggle;
-
-    @FXML
-    private RadioButton markFacesToggle;
+    private Button cameraToggle;
 
     @FXML
     private Button registerFaceButton;
@@ -63,14 +59,13 @@ public class UIController {
     @Autowired
     private FaceService faceService;
 
-    private static final String CAMERA_ON_TEXT = "Turn On Camera";
-    private static final String CAMERA_OFF_TEXT = "Turn Off Camera";
+    private static final String CAMERA_ON_TEXT = "Ligar Câmera";
+    private static final String CAMERA_OFF_TEXT = "Desligar Câmera";
 
     @FXML
     private void initialize() {
         cameraToggle.setText(CAMERA_ON_TEXT);
         cameraToggle.setOnAction(e -> toggleCamera());
-        markFacesToggle.setOnAction(e -> markFaces = !markFaces);
 
         var users = userService.findAll();
         faceService.loadUsers(users);
@@ -198,19 +193,20 @@ public class UIController {
         if (cameraService.isCameraActive()) {
             cameraService.stopCamera();
             cameraToggle.setText(CAMERA_ON_TEXT);
+            cameraView.setVisible(false);
         } else {
             cameraService.startCamera(frame -> {
                 if (markFaces) {
                     faceService.detectFaces(frame, true);
                 }
-
+                
                 Platform.runLater(() -> {
                     cameraView.setImage(matToImage(frame));
                 });
             });
             cameraToggle.setText(CAMERA_OFF_TEXT);
+            cameraView.setVisible(true);
         }
-        markFacesToggle.setVisible(cameraService.isCameraActive());
     }
 
     private javafx.scene.image.Image matToImage(Mat frame) {
@@ -278,6 +274,7 @@ public class UIController {
                 if (controller instanceof MainWindowTopUserController) {
                     MainWindowTopUserController topController = (MainWindowTopUserController) controller;
                     topController.setPropertyService(propertyService);
+                    topController.setCurrentRole(role);
                 }
 
                 Stage newStage = new Stage();

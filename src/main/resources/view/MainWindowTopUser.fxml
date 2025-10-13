@@ -7,10 +7,10 @@
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
-<?import javafx.scene.layout.Region?>
 
 <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
    prefHeight="550.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/25"
@@ -37,17 +37,16 @@
             </Button>
 
             <Button fx:id="add_user_btn" mnemonicParsing="false"
-               onMouseClicked="#open_add_users_pane"
-               prefHeight="30.0" style="-fx-background-radius: 0 0 -2 -2;" text="Cadastrar usuário">
+               onMouseClicked="#open_add_users_pane" prefHeight="30.0"
+               style="-fx-background-radius: 0 0 -2 -2;" text="Cadastrar usuário">
                <font>
                   <Font size="14.0" />
                </font>
             </Button>
 
             <Button fx:id="add_property_btn" mnemonicParsing="false"
-               onMouseClicked="#openAddProperty"
-               prefHeight="30.0" style="-fx-background-radius: 0 0 -2 -2;"
-               text="Cadastrar Propriedade">
+               onMouseClicked="#openAddProperty" prefHeight="30.0"
+               style="-fx-background-radius: 0 0 -2 -2;" text="Cadastrar Propriedade">
                <font>
                   <Font size="14.0" />
                </font>
@@ -73,57 +72,58 @@
                <children>
                   <TableView fx:id="properties_table" prefHeight="517.0" prefWidth="900.0">
                      <columns>
-                        <TableColumn fx:id="tbl_col_owner" prefWidth="248.0" text="Owner" />
-                        <TableColumn fx:id="tbl_col_fisc_date" prefWidth="318.0"
-                           text="Inspection Date" />
+                        <TableColumn fx:id="tbl_col_owner" minWidth="75.0" text="Proprietário" />
+                        <TableColumn fx:id="tbl_col_fisc_date" minWidth="125.0" prefWidth="-1.0"
+                           text="Data de Fiscalização" />
                         <TableColumn fx:id="tb_col_acoes_properties" text="Ações" />
                      </columns>
                   </TableView>
                </children>
+
                <StackPane.margin>
                   <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
                </StackPane.margin>
             </VBox>
-            <VBox fx:id="users_info" prefHeight="200.0" prefWidth="100.0">
+
+            <VBox fx:id="users_info" prefHeight="200.0" prefWidth="100.0" visible="false">
                <children>
                   <TableView fx:id="users_table" prefHeight="517.0" prefWidth="900.0">
                      <columns>
-                        <TableColumn fx:id="tb_col_username" prefWidth="226.0" text="Username" />
-                        <TableColumn fx:id="tb_col_email" prefWidth="455.0" text="e-mail" />
-                        <TableColumn fx:id="tb_col_level_access" prefWidth="218.0"
-                           text="Level Access" />
+                        <TableColumn fx:id="tb_col_username" minWidth="75.0" prefWidth="-1.0"
+                           text="Nome" />
+                        <TableColumn fx:id="tb_col_email" minWidth="50.0" prefWidth="-1.0"
+                           text="E-mail" />
+                        <TableColumn fx:id="tb_col_level_access" minWidth="100.0" prefWidth="-1.0"
+                           text="Nível de Acesso" />
                         <TableColumn fx:id="tb_col_acoes" text="Ações" />
                      </columns>
+
                      <VBox.margin>
                         <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                      </VBox.margin>
                   </TableView>
                </children>
             </VBox>
+
             <VBox fx:id="add_users" alignment="CENTER" onMouseClicked="#register_user"
-               prefHeight="200.0" prefWidth="100.0" visible="false">
+               prefHeight="200.0" prefWidth="100.0">
                <children>
-                  <RadioButton fx:id="radio_camera" mnemonicParsing="false"
-                     onMouseClicked="#toggle_camera" text="Camera Off">
+                  <Button fx:id="btnLigarCamera" mnemonicParsing="false"
+                     onMouseClicked="#toggle_camera" text="Ligar Câmera">
                      <VBox.margin>
                         <Insets bottom="10.0" />
                      </VBox.margin>
-                  </RadioButton>
-                  <RadioButton fx:id="radio_mark_face" mnemonicParsing="false"
-                     onMouseClicked="#toggle_mark_faces" text="Mark Faces">
-                     <VBox.margin>
-                        <Insets bottom="5.0" />
-                     </VBox.margin>
-                  </RadioButton>
+                  </Button>
+
                   <ImageView fx:id="camera_view" fitHeight="338.0" fitWidth="868.0"
                      pickOnBounds="true" preserveRatio="true">
                      <VBox.margin>
                         <Insets bottom="15.0" left="15.0" right="15.0" />
                      </VBox.margin>
                   </ImageView>
+
                   <Button fx:id="btn_register_user" mnemonicParsing="false"
-                     onMouseClicked="#register_user"
-                     style="-fx-background-radius: 10; -fx-background-color: #FF7F24;"
+                     onMouseClicked="#register_user" style="-fx-background-radius: 10;"
                      text="Register new face">
                      <font>
                         <Font name="Bauhaus 93" size="22.0" />
