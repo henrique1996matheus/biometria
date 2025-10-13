@@ -4,6 +4,7 @@ import org.bytedeco.opencv.global.opencv_videoio;
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.bytedeco.opencv.opencv_videoio.VideoCapture;
 import org.springframework.stereotype.Service;
+import static org.bytedeco.opencv.global.opencv_imgproc.*;
 
 import java.util.function.Consumer;
 
@@ -28,15 +29,17 @@ public class CameraService {
 
             Mat frame = new Mat();
             while (cameraAtiva && videoCapture.read(frame)) {
-                if (!frame.empty()) {
-                    frameCallback.accept(frame);
-                }
-                try {
-                    Thread.sleep(33);
-                } catch (InterruptedException e) {
-                    break;
-                }
+            if (!frame.empty()) {
+                Mat frameRGB = new Mat();
+                cvtColor(frame, frameRGB, COLOR_BGR2RGB);
+                frameCallback.accept(frameRGB);
             }
+            try {
+                Thread.sleep(33);
+            } catch (InterruptedException e) {
+                break;
+            }
+        }
             videoCapture.release();
         });
         cameraThread.setDaemon(true);
