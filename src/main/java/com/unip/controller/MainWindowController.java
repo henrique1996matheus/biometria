@@ -53,7 +53,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 @Controller
-public class MainWindowTopUserController implements Initializable {
+public class MainWindowController implements Initializable {
 
     @Autowired
     private CameraService cameraService;

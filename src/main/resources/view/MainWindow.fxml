@@ -15,7 +15,7 @@
 <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
    prefHeight="550.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/25"
    xmlns:fx="http://javafx.com/fxml/1"
-   fx:controller="com.unip.controller.MainWindowTopUserController">
+   fx:controller="com.unip.controller.MainWindowController">
    <children>
       <HBox alignment="BOTTOM_LEFT" prefHeight="59.0" prefWidth="900.0" spacing="5.0"
          style="-fx-padding: 0 15 0 15;">

@@ -26,7 +26,7 @@ public class FormPropertyController implements Initializable {
     private RuralPropertyService propertyService;
 
     private RuralProperty propertyToEdit;
-    private MainWindowTopUserController mainController;
+    private MainWindowController mainController;
 
     @FXML
     private Button btn_cancel;
@@ -77,7 +77,7 @@ public class FormPropertyController implements Initializable {
         loadPropertyData();
     }
 
-    public void setMainController(MainWindowTopUserController mainController) {
+    public void setMainController(MainWindowController mainController) {
         this.mainController = mainController;
     }
 

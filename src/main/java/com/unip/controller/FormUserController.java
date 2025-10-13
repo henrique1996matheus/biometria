@@ -27,7 +27,7 @@ public class FormUserController implements Initializable {
 
     private User userToEdit;
 
-    private MainWindowTopUserController mainController;
+    private MainWindowController mainController;
 
     @FXML
     private Button btn_cancel;
@@ -78,7 +78,7 @@ public class FormUserController implements Initializable {
         loadUserData();
     }
 
-    public void setMainController(MainWindowTopUserController mainController) {
+    public void setMainController(MainWindowController mainController) {
         this.mainController = mainController;
     }
 

@@ -240,7 +240,7 @@ public class UIController {
     private void openRoleWindow(Role role) {
         Platform.runLater(() -> {
             try {
-                String fxmlFile = "/view/MainWindowTopUser.fxml";
+                String fxmlFile = "/view/MainWindow.fxml";
                 String title = "";
 
                 switch (role) {
@@ -271,8 +271,8 @@ public class UIController {
 
                 Object controller = loader.getController();
 
-                if (controller instanceof MainWindowTopUserController) {
-                    MainWindowTopUserController topController = (MainWindowTopUserController) controller;
+                if (controller instanceof MainWindowController) {
+                    MainWindowController topController = (MainWindowController) controller;
                     topController.setPropertyService(propertyService);
                     topController.setCurrentRole(role);
                 }
