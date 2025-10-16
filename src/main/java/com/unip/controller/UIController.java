@@ -60,7 +60,7 @@ public class UIController {
     private CameraService cameraService;
 
     @Autowired
-    private FaceService faceService;
+    private FaceService genericFaceService;
 
     private static final String CAMERA_ON_TEXT = "Ligar Câmera";
     private static final String CAMERA_OFF_TEXT = "Desligar Câmera";
@@ -71,6 +71,7 @@ public class UIController {
         cameraToggle.setOnAction(e -> toggleCamera());
 
         var users = userService.findAll();
+        var faceService = new FaceService();
         faceService.loadUsers(users);
 
         registerFaceButton.setOnAction(e -> {
@@ -88,8 +89,10 @@ public class UIController {
             try {
                 Mat frame = cameraService.captureFrame();
                 if (frame != null) {
+                    faceService.loadUsers(userService.findAll());
                     faceService.authenticate(frame, (message, role) -> {
                         if (role != null) {
+                            toggleCamera();
                             openRoleWindow(role);
                         } else {
                             showMessage(message);
@@ -124,6 +127,7 @@ public class UIController {
     }
 
     private void showRegistrationDialog(Mat frame) {
+        var faceService = new FaceService();
         int faceCount = faceService.countFacesInImage(frame);
         if (faceCount == 0) {
             showMessage("Erro: Nenhum rosto detectado na imagem. Por favor, posicione-se melhor na câmera.");
@@ -187,6 +191,7 @@ public class UIController {
             }
 
             try {
+                faceService.loadUsers(userService.findAll());
                 if (!faceService.authenticate(frame, (message, callRole) -> {
                 })) {
                     user = userService.saveUser(user);
@@ -213,7 +218,7 @@ public class UIController {
         } else {
             cameraService.startCamera(frame -> {
                 if (markFaces) {
-                    faceService.detectFaces(frame, true);
+                    genericFaceService.detectFaces(frame, true);
                 }
 
                 Platform.runLater(() -> {

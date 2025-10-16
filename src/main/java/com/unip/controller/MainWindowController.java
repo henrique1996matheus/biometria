@@ -59,7 +59,7 @@ public class MainWindowController implements Initializable {
     private CameraService cameraService;
 
     @Autowired
-    private FaceService faceService;
+    private FaceService genericFaceService;
 
     @Autowired
     private UserService userService;
@@ -191,10 +191,8 @@ public class MainWindowController implements Initializable {
     void toggle_camera(MouseEvent event) {
         if (cameraActive) {
             stopCamera();
-            btnLigarCamera.setText("Ligar Câmera");
         } else {
             startCamera();
-            btnLigarCamera.setText("Desligar Câmera");
         }
     }
 
@@ -403,6 +401,8 @@ public class MainWindowController implements Initializable {
         if (resultado.isPresent() && resultado.get() == ButtonType.OK) {
             try {
 
+                var faceService = new FaceService();
+                faceService.loadUsers(userService.findAll());
                 faceService.delete(user);
                 userService.delete(user.getId());
 
@@ -480,17 +480,23 @@ public class MainWindowController implements Initializable {
                 }
             });
         });
+
         cameraActive = true;
+        camera_view.setVisible(true);
+        btnLigarCamera.setText("Desligar Câmera");
     }
 
     private void stopCamera() {
         if (cameraActive) {
             cameraService.stopCamera();
             cameraActive = false;
+            camera_view.setVisible(false);
+            btnLigarCamera.setText("Ligar Câmera");
         }
     }
 
     private void showRegistrationDialog(Mat frame) {
+        var faceService = new FaceService();
         int faceCount = faceService.countFacesInImage(frame);
         if (faceCount == 0) {
             showMessage("Erro: Nenhum rosto detectado na imagem. Por favor, posicione-se melhor na câmera.");
@@ -559,6 +565,7 @@ public class MainWindowController implements Initializable {
             }
 
             try {
+                faceService.loadUsers(userService.findAll());
                 if (!faceService.authenticate(frame, (message, role) -> {
                 })) {
                     user = userService.saveUser(user);
