@@ -11,6 +11,7 @@ import static org.bytedeco.opencv.global.opencv_imgproc.warpAffine;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -192,14 +193,26 @@ class FaceProcessingHelper {
 
     private CascadeClassifier loadCascade(String cascadePath) {
         try {
-            CascadeClassifier classifier = new CascadeClassifier();
-            String path = getClass().getResource(cascadePath).getPath();
-
-            if (!classifier.load(path)) {
-                throw new RuntimeException("Não foi possível carregar o classificador: " + cascadePath);
+            // Tenta localizar o recurso dentro do classpath (ex: src/main/resources)
+            URL resource = getClass().getResource(cascadePath);
+            if (resource == null) {
+                throw new RuntimeException("Arquivo Haar Cascade não encontrado: " + cascadePath);
             }
+
+            // Converte o URL em File para obter um caminho válido do SO
+            File file = new File(resource.toURI());
+
+            System.out.println("Carregando Haarcascade de: " + file.getAbsolutePath());
+
+            CascadeClassifier classifier = new CascadeClassifier(file.getAbsolutePath());
+            if (classifier.empty()) {
+                throw new RuntimeException("Falha ao carregar o classificador Haar Cascade!");
+            }
+
             return classifier;
+
         } catch (Exception e) {
+            e.printStackTrace();
             throw new RuntimeException("Erro ao carregar classificador Haar Cascade: " + cascadePath, e);
         }
     }

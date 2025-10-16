@@ -129,8 +129,10 @@ public class UIController {
             showMessage("Erro: Nenhum rosto detectado na imagem. Por favor, posicione-se melhor na câmera.");
             return;
         }
+
         if (faceCount > 1) {
-            showMessage("Erro: A imagem contém " + faceCount + " rostos. Por favor, tire uma foto com apenas UMA pessoa.");
+            showMessage(
+                    "Erro: A imagem contém " + faceCount + " rostos. Por favor, tire uma foto com apenas UMA pessoa.");
             return;
         }
 
@@ -185,13 +187,18 @@ public class UIController {
             }
 
             try {
-                user = userService.saveUser(user);
+                if (!faceService.authenticate(frame, (message, callRole) -> {
+                })) {
+                    user = userService.saveUser(user);
 
-                faceService.register(frame, user, (message, registeredRole) -> {
-                    if (registeredRole != null) {
-                        openRoleWindow(registeredRole);
-                    }
-                });
+                    faceService.register(frame, user, (message, registeredRole) -> {
+                        if (registeredRole != null) {
+                            openRoleWindow(registeredRole);
+                        }
+                    });
+                } else {
+                    showMessage("Rosto já cadastrado no sistema");
+                }
             } catch (Exception e) {
                 showMessage("Erro: " + e.getMessage());
             }
@@ -208,7 +215,7 @@ public class UIController {
                 if (markFaces) {
                     faceService.detectFaces(frame, true);
                 }
-                
+
                 Platform.runLater(() -> {
                     cameraView.setImage(matToImage(frame));
                 });
